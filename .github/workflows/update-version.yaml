@@ -32,6 +32,7 @@ jobs:
         with:
           fetch-depth: 0  # we need history to merge
           persist-credentials: true  # so we can push with GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }} # Explicitly use the GITHUB_TOKEN
 
       - name: Configure git user
         run: |
