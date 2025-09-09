@@ -91,15 +91,21 @@ jobs:
           
           # Reset workflow directory to match the target branch
           if [ -d .github/workflows ]; then
+            echo "Restoring workflow files to target branch state..."
             git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
             
-            # Check if there are any changes to commit
-            if ! git diff --quiet --staged; then
+            # Stage the changes (git checkout doesn't auto-stage)
+            git add .github/workflows/
+            
+            # Check if there are any staged changes to commit
+            if ! git diff --quiet --cached; then
               git commit -m "revert: exclude upstream workflow changes for security"
               echo "Workflow changes reverted to match target branch"
             else
               echo "No workflow changes to revert"
             fi
+          else
+            echo "No .github/workflows directory found"
           fi
 
       - name: Check for workflow changes
