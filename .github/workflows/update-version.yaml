@@ -132,6 +132,10 @@ jobs:
           if [ "${{ steps.check_workflows.outputs.workflow_changes }}" = "true" ]; then
             echo "Workflow changes were detected, reverting them..."
             
+            # Show current git status
+            echo "=== Git status before revert ==="
+            git status --porcelain
+            
             # Reset workflow directory to match the target branch
             if [ -d .github/workflows ]; then
               echo "Restoring workflow files to target branch state..."
@@ -140,17 +144,27 @@ jobs:
               echo "Current workflow files:"
               ls -la .github/workflows/ || echo "No files found"
               
+              # Show what's different
+              echo "=== Differences in .github/workflows ==="
+              git diff "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/ || echo "No differences found"
+              
               # Restore to target branch state
               git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
               
-              # Stage all workflow changes
-              git add .github/workflows/
+              # Force add all workflow files (including deletions)
+              git add -A .github/workflows/
               
               echo "After restoration:"
               ls -la .github/workflows/ || echo "No files found"
               
+              # Show git status after restoration
+              echo "=== Git status after revert ==="
+              git status --porcelain
+              
               # Check if there are any staged changes
               if ! git diff --quiet --cached; then
+                echo "=== Staged changes ==="
+                git diff --cached --name-only
                 git commit -m "revert: exclude upstream workflow changes for security"
                 echo "✅ Workflow changes reverted to match target branch"
               else
