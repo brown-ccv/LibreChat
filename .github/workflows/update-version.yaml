@@ -18,6 +18,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: read
 
 jobs:
   sync-upstream:
@@ -62,16 +63,6 @@ jobs:
             echo "::error::Tag '$TAG' not found in upstream repository"
             exit 1
           fi
-
-      - name: Create sync branch
-        id: create_branch
-        run: |
-          SYNC_BRANCH="sync/upstream-${{ github.event.inputs.upstream_tag }}-$(date +%Y%m%d-%H%M%S)"
-          echo "branch_name=$SYNC_BRANCH" >> $GITHUB_OUTPUT
-          
-          # Create new branch from target branch
-          git checkout -b "$SYNC_BRANCH" "origin/${{ github.event.inputs.target_branch }}"
-          echo "Created branch: $SYNC_BRANCH"
 
       - name: Check for workflow changes
         id: check_workflows
@@ -121,10 +112,6 @@ jobs:
           
           echo "Merging upstream tag: $TAG"
           
-          # Create a temporary merge to see what would be included
-          echo "Creating temporary merge to analyze changes..."
-          git fetch origin "${{ github.event.inputs.target_branch }}"
-          
           # Do the merge but don't commit yet
           if [ -n "$STRATEGY" ]; then
             echo "Using merge strategy: $STRATEGY"
@@ -138,29 +125,10 @@ jobs:
           if [ "${{ steps.check_workflows.outputs.workflow_changes }}" = "true" ]; then
             echo "Detected workflow changes, reverting them before commit..."
             
-            # Show what's currently staged
-            echo "=== Currently staged files ==="
-            git diff --cached --name-only
-            
-            # Show current workflow directory
-            echo "=== Current .github/workflows files ==="
-            ls -la .github/workflows/ 2>/dev/null || echo "No workflow directory"
-            
             # Restore workflow files to target branch state
             git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
             
-            # Add the restored workflow files to staging area
-            git add .github/workflows/
-            
-            echo "=== After workflow revert ==="
-            echo "Staged files:"
-            git diff --cached --name-only
-            echo "Workflow files:"
-            ls -la .github/workflows/ 2>/dev/null || echo "No workflow directory"
-            
             echo "Workflow files reverted to target branch state"
-          else
-            echo "No workflow changes detected, proceeding with merge as-is"
           fi
           
           # Final verification - check if any workflow files are still staged
@@ -176,117 +144,37 @@ jobs:
             echo "✅ No workflow files staged for commit"
           fi
           
-          # Show final staged files
-          echo "=== Final staged files ==="
-          git diff --cached --name-only
-          
           # Now commit the merge (with workflows excluded)
           git commit --no-edit -m "Merge upstream $TAG"
           echo "Merge completed with workflow exclusions"
 
-      - name: Create sync summary
-        run: |
-          # Create a summary file to document the sync
-          echo "# Upstream Sync Summary" > SYNC_SUMMARY.md
-          echo "" >> SYNC_SUMMARY.md
-          echo "- **Upstream tag**: ${{ github.event.inputs.upstream_tag }}" >> SYNC_SUMMARY.md
-          echo "- **Target branch**: ${{ github.event.inputs.target_branch }}" >> SYNC_SUMMARY.md
-          echo "- **Merge strategy**: ${{ github.event.inputs.merge_strategy || 'default' }}" >> SYNC_SUMMARY.md
-          echo "- **Sync date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> SYNC_SUMMARY.md
-          echo "- **Merge status**: ${{ steps.merge_upstream.outcome == 'failure' && 'Failed (conflicts)' || 'Success' }}" >> SYNC_SUMMARY.md
-          echo "- **Workflow changes**: ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '⚠️ Detected (excluded)' || '✅ None' }}" >> SYNC_SUMMARY.md
-          
-          if [ "${{ steps.merge_upstream.outcome }}" = "success" ]; then
-            echo "" >> SYNC_SUMMARY.md
-            echo "✅ **Clean merge completed successfully**" >> SYNC_SUMMARY.md
-            echo "" >> SYNC_SUMMARY.md
-            echo "The upstream changes have been successfully merged into this branch." >> SYNC_SUMMARY.md
-          fi
-          
-          git add SYNC_SUMMARY.md
-          
-          # Add workflow changes file if it exists
-          if [ -f WORKFLOW_CHANGES.md ]; then
-            git add WORKFLOW_CHANGES.md
-          fi
-          
-          git commit -m "docs: add sync summary for upstream ${{ github.event.inputs.upstream_tag }}"
-
-      - name: Handle merge conflicts
-        if: steps.merge_upstream.outcome == 'failure'
-        run: |
-          echo "::warning::Merge conflicts detected during upstream sync"
-          
-          # Check if we're in the middle of a merge and abort if possible
-          if [ -f .git/MERGE_HEAD ]; then
-            echo "Aborting merge in progress..."
-            git merge --abort
-          else
-            echo "No merge in progress to abort"
-          fi
-          
-          # Update sync summary to reflect conflicts
-          echo "" >> SYNC_SUMMARY.md
-          echo "⚠️ **Merge conflicts detected**" >> SYNC_SUMMARY.md
-          echo "" >> SYNC_SUMMARY.md
-          echo "This PR has been created as a draft for manual conflict resolution." >> SYNC_SUMMARY.md
-          
-          # Create a conflict marker file
-          echo "# Merge Conflicts Detected" > MERGE_CONFLICTS.md
-          echo "" >> MERGE_CONFLICTS.md
-          echo "The merge of upstream tag \`${{ github.event.inputs.upstream_tag }}\` into \`${{ github.event.inputs.target_branch }}\` resulted in conflicts." >> MERGE_CONFLICTS.md
-          echo "" >> MERGE_CONFLICTS.md
-          echo "This PR has been created as a draft. Please resolve conflicts manually:" >> MERGE_CONFLICTS.md
-          echo "1. Clone this branch locally" >> MERGE_CONFLICTS.md
-          echo "2. Add upstream remote: \`git remote add upstream https://github.com/danny-avila/LibreChat.git\`" >> MERGE_CONFLICTS.md
-          echo "3. Fetch upstream: \`git fetch upstream --tags\`" >> MERGE_CONFLICTS.md
-          echo "4. Run: \`git merge ${{ github.event.inputs.upstream_tag }}\`" >> MERGE_CONFLICTS.md
-          echo "5. Resolve conflicts and commit" >> MERGE_CONFLICTS.md
-          echo "6. Push changes and mark PR as ready for review" >> MERGE_CONFLICTS.md
-          
-          git add SYNC_SUMMARY.md MERGE_CONFLICTS.md
-          
-          # Add workflow changes file if it exists
-          if [ -f WORKFLOW_CHANGES.md ]; then
-            git add WORKFLOW_CHANGES.md
-          fi
-          
-          git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
-
-      - name: Push sync branch
-        run: |
-          git push origin "${{ steps.create_branch.outputs.branch_name }}"
-
       - name: Create Pull Request
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Create PR body
-          cat > pr_body.md << 'EOF'
-          ## Upstream Sync: ${{ github.event.inputs.upstream_tag }}
-
-          This PR syncs the upstream tag `${{ github.event.inputs.upstream_tag }}` from [danny-avila/LibreChat](https://github.com/danny-avila/LibreChat) into `${{ github.event.inputs.target_branch }}`.
-
-          ### Details
-          - **Upstream tag**: `${{ github.event.inputs.upstream_tag }}`
-          - **Target branch**: `${{ github.event.inputs.target_branch }}`
-          - **Merge strategy**: `${{ github.event.inputs.merge_strategy || 'default' }}`
-          - **Triggered by**: @${{ github.actor }}
-
-          ### Status
-          ${{ steps.merge_upstream.outcome == 'failure' && '⚠️ **Merge conflicts detected** - This PR requires manual resolution' || '✅ **Clean merge** - Ready for review' }}
-
-          ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '### ⚠️ Workflow Changes Detected
-
-          This upstream tag contains GitHub workflow changes that were **excluded** from this merge for security reasons. See the `WORKFLOW_CHANGES.md` file in this PR for details on what changed and how to review them manually.' || '' }}
-
-          ---
-          *Automated upstream sync via GitHub Actions*
-          EOF
-
-          # Create PR using GitHub CLI
-          if [ "${{ steps.merge_upstream.outcome }}" = "failure" ]; then
-            gh pr create --base "${{ github.event.inputs.target_branch }}" --head "${{ steps.create_branch.outputs.branch_name }}" --title "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}" --body-file pr_body.md --draft
-          else
-            gh pr create --base "${{ github.event.inputs.target_branch }}" --head "${{ steps.create_branch.outputs.branch_name }}" --title "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}" --body-file pr_body.md
-          fi
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "docs: add sync summary for upstream ${{ github.event.inputs.upstream_tag }}"
+          title: "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}"
+          body: |
+            ## Upstream Sync: ${{ github.event.inputs.upstream_tag }}
+            
+            This PR syncs the upstream tag `${{ github.event.inputs.upstream_tag }}` from [danny-avila/LibreChat](https://github.com/danny-avila/LibreChat) into `${{ github.event.inputs.target_branch }}`.
+            
+            ### Details
+            - **Upstream tag**: `${{ github.event.inputs.upstream_tag }}`
+            - **Target branch**: `${{ github.event.inputs.target_branch }}`
+            - **Merge strategy**: `${{ github.event.inputs.merge_strategy || 'default' }}`
+            - **Triggered by**: @${{ github.actor }}
+            
+            ### Status
+            ${{ steps.merge_upstream.outcome == 'failure' && '⚠️ **Merge conflicts detected** - This PR requires manual resolution' || '✅ **Clean merge** - Ready for review' }}
+            
+            ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '### ⚠️ Workflow Changes Detected
+            
+            This upstream tag contains GitHub workflow changes that were **excluded** from this merge for security reasons. See the `WORKFLOW_CHANGES.md` file in this PR for details on what changed and how to review them manually.' || '' }}
+            
+            ---
+            *Automated upstream sync via GitHub Actions*
+          branch: sync/upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_number }}
+          base: ${{ github.event.inputs.target_branch }}
+          draft: ${{ steps.merge_upstream.outcome == 'failure' }}
+          delete-branch: false
