@@ -69,7 +69,7 @@ jobs:
       - name: Prepare merge branch
         id: prep
         run: |
-          BRANCH="sync/upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}"
+          BRANCH="sync-upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}"
           echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
           # Start from your target branch
           git checkout -B "$BRANCH" "origin/${{ github.event.inputs.target_branch }}"
