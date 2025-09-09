@@ -70,7 +70,7 @@ jobs:
           # Start from your target branch
           git checkout -B "$BRANCH" "origin/${{ github.event.inputs.target_branch }}"
 
-      - name: Merge upstream tag
+      - name: Merge upstream tag (excluding workflows)
         id: merge
         continue-on-error: true
         env:
@@ -81,10 +81,10 @@ jobs:
           if [ -n "$STRAT" ]; then
             echo "Using merge strategy option: -X $STRAT"
             set -x
-            git merge --no-ff -X "$STRAT" --no-edit "$SHA"
+            git merge --no-ff -X "$STRAT" --no-edit "$SHA" -- . ':!.github/workflows'
           else
             set -x
-            git merge --no-ff --no-edit "$SHA"
+            git merge --no-ff --no-edit "$SHA"  -- . ':!.github/workflows'
           fi
 
       - name: Handle merge conflicts (abort & mark)
