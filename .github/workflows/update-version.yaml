@@ -84,6 +84,27 @@ jobs:
             git merge --no-ff --no-edit "upstream/$TAG"
           fi
 
+      - name: Create sync summary
+        run: |
+          # Create a summary file to document the sync
+          echo "# Upstream Sync Summary" > SYNC_SUMMARY.md
+          echo "" >> SYNC_SUMMARY.md
+          echo "- **Upstream tag**: ${{ github.event.inputs.upstream_tag }}" >> SYNC_SUMMARY.md
+          echo "- **Target branch**: ${{ github.event.inputs.target_branch }}" >> SYNC_SUMMARY.md
+          echo "- **Merge strategy**: ${{ github.event.inputs.merge_strategy || 'default' }}" >> SYNC_SUMMARY.md
+          echo "- **Sync date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> SYNC_SUMMARY.md
+          echo "- **Merge status**: ${{ steps.merge_upstream.outcome == 'failure' && 'Failed (conflicts)' || 'Success' }}" >> SYNC_SUMMARY.md
+          
+          if [ "${{ steps.merge_upstream.outcome }}" = "success" ]; then
+            echo "" >> SYNC_SUMMARY.md
+            echo "✅ **Clean merge completed successfully**" >> SYNC_SUMMARY.md
+            echo "" >> SYNC_SUMMARY.md
+            echo "The upstream changes have been successfully merged into this branch." >> SYNC_SUMMARY.md
+          fi
+          
+          git add SYNC_SUMMARY.md
+          git commit -m "docs: add sync summary for upstream ${{ github.event.inputs.upstream_tag }}"
+
       - name: Handle merge conflicts
         if: steps.merge_upstream.outcome == 'failure'
         run: |
@@ -101,6 +122,12 @@ jobs:
           git reset --hard HEAD
           git clean -fd
           
+          # Update sync summary to reflect conflicts
+          echo "" >> SYNC_SUMMARY.md
+          echo "⚠️ **Merge conflicts detected**" >> SYNC_SUMMARY.md
+          echo "" >> SYNC_SUMMARY.md
+          echo "This PR has been created as a draft for manual conflict resolution." >> SYNC_SUMMARY.md
+          
           # Create a conflict marker file
           echo "# Merge Conflicts Detected" > MERGE_CONFLICTS.md
           echo "" >> MERGE_CONFLICTS.md
@@ -112,12 +139,8 @@ jobs:
           echo "3. Resolve conflicts and commit" >> MERGE_CONFLICTS.md
           echo "4. Push changes and mark PR as ready for review" >> MERGE_CONFLICTS.md
           
-          git add MERGE_CONFLICTS.md
+          git add SYNC_SUMMARY.md MERGE_CONFLICTS.md
           git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
-
-      - name: Push sync branch
-        run: |
-          git push origin "${{ steps.create_branch.outputs.branch_name }}"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
