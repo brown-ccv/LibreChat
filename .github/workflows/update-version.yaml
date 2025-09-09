@@ -127,7 +127,7 @@ jobs:
           fi
 
       - name: Create PR
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}  # Add this explicitly
           branch: ${{ steps.prep.outputs.branch_name }}
