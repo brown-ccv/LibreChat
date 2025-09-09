@@ -118,10 +118,6 @@ jobs:
             echo "No merge in progress to abort"
           fi
           
-          # Reset to clean state
-          git reset --hard HEAD
-          git clean -fd
-          
           # Update sync summary to reflect conflicts
           echo "" >> SYNC_SUMMARY.md
           echo "⚠️ **Merge conflicts detected**" >> SYNC_SUMMARY.md
