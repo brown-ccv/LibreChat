@@ -49,6 +49,10 @@ jobs:
         id: resolve_tag
         run: |
           TAG="${{ github.event.inputs.upstream_tag }}"
+          if [ -z "$TAG" ]; then
+            echo "::error::TAG environment variable is not set."
+            exit 1
+          fi
           echo "Resolving tag '$TAG' in upstream..."
           # Try peeled SHA for annotated tags first
           SHA="$(git ls-remote --tags upstream "$TAG^{}" | awk '{print $1}')"
