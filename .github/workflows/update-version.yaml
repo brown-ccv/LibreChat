@@ -22,7 +22,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-
+  actions: write
 jobs:
   merge-upstream-tag:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
         run: |
           git remote add upstream https://github.com/danny-avila/LibreChat.git
           git fetch upstream --tags --prune
-          git remote set-url origin https://github.com/${{ github.repository }}.git
+          # git remote set-url origin https://github.com/${{ github.repository }}.git
 
       - name: Resolve upstream tag commit
         id: resolve_tag
@@ -100,6 +100,8 @@ jobs:
             github.event.inputs.upstream_tag }} merge needs manual resolution"
       
       - name: Push branch
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --get remote.origin.url
           # git push --set-upstream origin "${{ steps.prep.outputs.branch_name }}"
