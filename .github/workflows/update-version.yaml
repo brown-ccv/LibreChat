@@ -38,12 +38,12 @@ jobs:
         run: |
           git remote add upstream https://github.com/danny-avila/LibreChat.git
           
-          # Only fetch the specific tag we need, not all branches
-          echo "Fetching specific tag: ${{ github.event.inputs.upstream_tag }}"
-          git fetch upstream "refs/tags/${{ github.event.inputs.upstream_tag }}:refs/tags/${{ github.event.inputs.upstream_tag }}" --depth=1
+          # Fetch the specific tag with enough history to find common ancestor
+          echo "Fetching upstream tag: ${{ github.event.inputs.upstream_tag }}"
+          git fetch upstream --tags --depth=1000
           
-          # Also fetch the upstream default branch for reference
-          git fetch upstream main:refs/remotes/upstream/main --depth=1
+          # Also fetch upstream main for reference  
+          git fetch upstream main --depth=1000
 
       - name: Validate upstream tag
         id: validate_tag
@@ -128,10 +128,10 @@ jobs:
           # Do the merge but don't commit yet
           if [ -n "$STRATEGY" ]; then
             echo "Using merge strategy: $STRATEGY"
-            git merge --no-commit --no-ff -X "$STRATEGY" "$TAG"
+            git merge --no-commit --no-ff -X "$STRATEGY" --allow-unrelated-histories "$TAG"
           else
             echo "Using default merge strategy"
-            git merge --no-commit --no-ff "$TAG"
+            git merge --no-commit --no-ff --allow-unrelated-histories "$TAG"
           fi
           
           # Check if we have workflow changes and revert them before committing
