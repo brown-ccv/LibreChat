@@ -1,4 +1,4 @@
-name: merge upstream version -> PR
+name: Sync Upstream PR
 
 on:
   workflow_dispatch:
@@ -88,7 +88,18 @@ jobs:
         if: steps.merge_upstream.outcome == 'failure'
         run: |
           echo "::warning::Merge conflicts detected during upstream sync"
-          git merge --abort
+          
+          # Check if we're in the middle of a merge and abort if possible
+          if [ -f .git/MERGE_HEAD ]; then
+            echo "Aborting merge in progress..."
+            git merge --abort
+          else
+            echo "No merge in progress to abort"
+          fi
+          
+          # Reset to clean state
+          git reset --hard HEAD
+          git clean -fd
           
           # Create a conflict marker file
           echo "# Merge Conflicts Detected" > MERGE_CONFLICTS.md
