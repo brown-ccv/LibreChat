@@ -78,10 +78,67 @@ jobs:
           
           if [ -n "$STRATEGY" ]; then
             echo "Using merge strategy: $STRATEGY"
-            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG" -- . ':!.github/workflows'
+            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG"
           else
             echo "Using default merge strategy"
-            git merge --no-ff --no-edit "$TAG" -- . ':!.github/workflows'
+            git merge --no-ff --no-edit "$TAG"
+          fi
+
+      - name: Remove workflow changes after merge
+        if: steps.merge_upstream.outcome == 'success'
+        run: |
+          echo "Checking for and removing workflow changes..."
+          
+          # Reset workflow directory to match the target branch
+          if [ -d .github/workflows ]; then
+            git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
+            
+            # Check if there are any changes to commit
+            if ! git diff --quiet --staged; then
+              git commit -m "revert: exclude upstream workflow changes for security"
+              echo "Workflow changes reverted to match target branch"
+            else
+              echo "No workflow changes to revert"
+            fi
+          fi
+
+      - name: Check for workflow changes
+        id: check_workflows
+        run: |
+          TAG="${{ github.event.inputs.upstream_tag }}"
+          echo "Checking for workflow changes in upstream tag..."
+          
+          # Get the list of workflow files that changed in the upstream tag
+          WORKFLOW_CHANGES=$(git diff --name-only HEAD..$TAG -- .github/workflows/ 2>/dev/null || true)
+          
+          if [ -n "$WORKFLOW_CHANGES" ]; then
+            echo "workflow_changes=true" >> $GITHUB_OUTPUT
+            echo "Workflow changes detected:"
+            echo "$WORKFLOW_CHANGES"
+            
+            # Save the changes to a file for the summary
+            echo "# Workflow Changes Detected" > WORKFLOW_CHANGES.md
+            echo "" >> WORKFLOW_CHANGES.md
+            echo "⚠️ **The upstream tag \`$TAG\` contains changes to GitHub workflows that were excluded from this merge.**" >> WORKFLOW_CHANGES.md
+            echo "" >> WORKFLOW_CHANGES.md
+            echo "## Changed workflow files:" >> WORKFLOW_CHANGES.md
+            echo "\`\`\`" >> WORKFLOW_CHANGES.md
+            echo "$WORKFLOW_CHANGES" >> WORKFLOW_CHANGES.md
+            echo "\`\`\`" >> WORKFLOW_CHANGES.md
+            echo "" >> WORKFLOW_CHANGES.md
+            echo "## What to do:" >> WORKFLOW_CHANGES.md
+            echo "1. Review the workflow changes manually" >> WORKFLOW_CHANGES.md
+            echo "2. If you want to include them, manually cherry-pick or apply the changes" >> WORKFLOW_CHANGES.md
+            echo "3. Test workflow changes in a separate PR for safety" >> WORKFLOW_CHANGES.md
+            echo "" >> WORKFLOW_CHANGES.md
+            echo "## To see the changes:" >> WORKFLOW_CHANGES.md
+            echo "\`\`\`bash" >> WORKFLOW_CHANGES.md
+            echo "git fetch upstream --tags" >> WORKFLOW_CHANGES.md
+            echo "git diff HEAD..$TAG -- .github/workflows/" >> WORKFLOW_CHANGES.md
+            echo "\`\`\`" >> WORKFLOW_CHANGES.md
+          else
+            echo "workflow_changes=false" >> $GITHUB_OUTPUT
+            echo "No workflow changes detected in upstream tag"
           fi
 
       - name: Create sync summary
@@ -94,6 +151,7 @@ jobs:
           echo "- **Merge strategy**: ${{ github.event.inputs.merge_strategy || 'default' }}" >> SYNC_SUMMARY.md
           echo "- **Sync date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> SYNC_SUMMARY.md
           echo "- **Merge status**: ${{ steps.merge_upstream.outcome == 'failure' && 'Failed (conflicts)' || 'Success' }}" >> SYNC_SUMMARY.md
+          echo "- **Workflow changes**: ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '⚠️ Detected (excluded)' || '✅ None' }}" >> SYNC_SUMMARY.md
           
           if [ "${{ steps.merge_upstream.outcome }}" = "success" ]; then
             echo "" >> SYNC_SUMMARY.md
@@ -103,6 +161,12 @@ jobs:
           fi
           
           git add SYNC_SUMMARY.md
+          
+          # Add workflow changes file if it exists
+          if [ -f WORKFLOW_CHANGES.md ]; then
+            git add WORKFLOW_CHANGES.md
+          fi
+          
           git commit -m "docs: add sync summary for upstream ${{ github.event.inputs.upstream_tag }}"
 
       - name: Handle merge conflicts
@@ -138,6 +202,12 @@ jobs:
           echo "6. Push changes and mark PR as ready for review" >> MERGE_CONFLICTS.md
           
           git add SYNC_SUMMARY.md MERGE_CONFLICTS.md
+          
+          # Add workflow changes file if it exists
+          if [ -f WORKFLOW_CHANGES.md ]; then
+            git add WORKFLOW_CHANGES.md
+          fi
+          
           git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
 
       - name: Push sync branch
@@ -164,6 +234,10 @@ jobs:
             
             ### Status
             ${{ steps.merge_upstream.outcome == 'failure' && '⚠️ **Merge conflicts detected** - This PR requires manual resolution' || '✅ **Clean merge** - Ready for review' }}
+            
+            ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '### ⚠️ Workflow Changes Detected
+            
+            This upstream tag contains GitHub workflow changes that were **excluded** from this merge for security reasons. See the `WORKFLOW_CHANGES.md` file in this PR for details on what changed and how to review them manually.' || '' }}
             
             ---
             *Automated upstream sync via GitHub Actions*
