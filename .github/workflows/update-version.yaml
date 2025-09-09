@@ -3,133 +3,135 @@ name: merge upstream version -> PR
 on:
   workflow_dispatch:
     inputs:
-      upstream_repo:
-        description: "owner/repo of upstream (e.g. upstreamOrg/project)"
-        required: false
-        default: ""
       upstream_tag:
-        description: "Tag name to merge from upstream (e.g. v1.2.3)"
+        description: "Upstream tag to merge (e.g. v1.2.3)"
         required: true
       target_branch:
-        description: "Your fork branch to receive the merge (e.g. main)"
+        description: "Target branch in your fork"
         default: "main"
         required: false
-      strategy_option:
-        description: "Optional merge strategy option (e.g. theirs, ours)"
+      merge_strategy:
+        description: "Merge strategy (ours, theirs, or leave empty for default)"
         required: false
         default: ""
 
 permissions:
   contents: write
   pull-requests: write
-  actions: write
+
 jobs:
-  merge-upstream-tag:
+  sync-upstream:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout your fork (with full history)
+      - name: Checkout origin repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # we need history to merge
-          persist-credentials: true  # so we can push with GITHUB_TOKEN
-          token: ${{ secrets.GITHUB_TOKEN }} # Explicitly use the GITHUB_TOKEN
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure git user
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Add and fetch upstream
+      - name: Add upstream remote and fetch
         run: |
           git remote add upstream https://github.com/danny-avila/LibreChat.git
           git fetch upstream --tags --prune
-          # git remote set-url origin https://github.com/${{ github.repository }}.git
 
-      - name: Resolve upstream tag commit
-        id: resolve_tag
+      - name: Validate upstream tag
+        id: validate_tag
         run: |
           TAG="${{ github.event.inputs.upstream_tag }}"
-          echo "Resolving tag '$TAG' in upstream..."
-          # Try peeled SHA for annotated tags first
-          SHA="$(git ls-remote --tags upstream "$TAG^{}" | awk '{print $1}')"
-          if [ -z "$SHA" ]; then
-            SHA="$(git ls-remote --tags upstream "$TAG" | awk '{print $1}')"
-          fi
-          if [ -z "$SHA" ]; then
-            echo "::error::Tag '$TAG' not found in upstream '${{ steps.upstream.outputs.repo }}'."
+          echo "Checking if tag '$TAG' exists in upstream..."
+          
+          # Check if tag exists
+          if git ls-remote --tags upstream | grep -q "refs/tags/$TAG"; then
+            echo "Tag '$TAG' found in upstream"
+            # Get the commit SHA for the tag
+            SHA=$(git ls-remote --tags upstream "refs/tags/$TAG" | cut -f1)
+            echo "tag_sha=$SHA" >> $GITHUB_OUTPUT
+            echo "Tag SHA: $SHA"
+          else
+            echo "::error::Tag '$TAG' not found in upstream repository"
             exit 1
           fi
-          echo "sha=$SHA" >> $GITHUB_OUTPUT
-          echo "Upstream tag '$TAG' resolves to $SHA"
 
-      - name: Prepare merge branch
-        id: prep
+      - name: Create sync branch
+        id: create_branch
         run: |
-          BRANCH="sync/upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}"
-          echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
-          # Start from your target branch
-          git checkout -B "$BRANCH" "origin/${{ github.event.inputs.target_branch }}"
-
-      - name: Merge upstream tag (excluding workflows)
-        id: merge
-        continue-on-error: true
-        env:
-          STRAT: ${{ github.event.inputs.strategy_option }}
-          SHA: ${{ steps.resolve_tag.outputs.sha }}
-        run: |
-          # Build merge command
-          if [ -n "$STRAT" ]; then
-            echo "Using merge strategy option: -X $STRAT"
-            set -x
-            git merge --no-ff -X "$STRAT" --no-edit "$SHA" -- . ':!.github/workflows'
-          else
-            set -x
-            git merge --no-ff --no-edit "$SHA"  -- . ':!.github/workflows'
-          fi
-
-      - name: Handle merge conflicts (abort & mark)
-        if: steps.merge.outcome == 'failure'
-        run: |
-          echo "Merge had conflicts. Aborting merge to keep repo clean."
-          git merge --abort || true
-          echo "::warning::Merge conflicts detected. Opening a DRAFT PR to signal manual resolution."
-          # Make a placeholder commit so the PR shows context (optional)
-          echo "Upstream tag ${{ github.event.inputs.upstream_tag }} merge needs manual resolution" > MERGE_CONFLICTS.txt
-          git add MERGE_CONFLICTS.txt
-          git commit -m "chore: upstream ${{
-            github.event.inputs.upstream_tag }} merge needs manual resolution"
-      
-      # - name: Push branch
-      #   env: 
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   run: |
-      #     git config --get remote.origin.url
-      #     # git push --set-upstream origin "${{ steps.prep.outputs.branch_name }}"
-      #     git push --set-upstream https://github.com/${{ github.repository }}.git "${{ steps.prep.outputs.branch_name }}"
+          SYNC_BRANCH="sync/upstream-${{ github.event.inputs.upstream_tag }}-$(date +%Y%m%d-%H%M%S)"
+          echo "branch_name=$SYNC_BRANCH" >> $GITHUB_OUTPUT
           
-      - name: Compute display values
-        id: display
+          # Create new branch from target branch
+          git checkout -b "$SYNC_BRANCH" "origin/${{ github.event.inputs.target_branch }}"
+          echo "Created branch: $SYNC_BRANCH"
+
+      - name: Merge upstream tag
+        id: merge_upstream
+        continue-on-error: true
         run: |
-          if [ -n "${{ github.event.inputs.strategy_option }}" ]; then
-            echo "strategy=${{ github.event.inputs.strategy_option }}" >> $GITHUB_OUTPUT
+          TAG="${{ github.event.inputs.upstream_tag }}"
+          STRATEGY="${{ github.event.inputs.merge_strategy }}"
+          
+          echo "Merging upstream tag: $TAG"
+          
+          if [ -n "$STRATEGY" ]; then
+            echo "Using merge strategy: $STRATEGY"
+            git merge --no-ff -X "$STRATEGY" --no-edit "upstream/$TAG"
           else
-            echo "strategy=default (recursive)" >> $GITHUB_OUTPUT
+            echo "Using default merge strategy"
+            git merge --no-ff --no-edit "upstream/$TAG"
           fi
 
-      - name: Create PR
+      - name: Handle merge conflicts
+        if: steps.merge_upstream.outcome == 'failure'
+        run: |
+          echo "::warning::Merge conflicts detected during upstream sync"
+          git merge --abort
+          
+          # Create a conflict marker file
+          echo "# Merge Conflicts Detected" > MERGE_CONFLICTS.md
+          echo "" >> MERGE_CONFLICTS.md
+          echo "The merge of upstream tag \`${{ github.event.inputs.upstream_tag }}\` into \`${{ github.event.inputs.target_branch }}\` resulted in conflicts." >> MERGE_CONFLICTS.md
+          echo "" >> MERGE_CONFLICTS.md
+          echo "This PR has been created as a draft. Please resolve conflicts manually:" >> MERGE_CONFLICTS.md
+          echo "1. Clone this branch locally" >> MERGE_CONFLICTS.md
+          echo "2. Run: \`git merge upstream/${{ github.event.inputs.upstream_tag }}\`" >> MERGE_CONFLICTS.md
+          echo "3. Resolve conflicts and commit" >> MERGE_CONFLICTS.md
+          echo "4. Push changes and mark PR as ready for review" >> MERGE_CONFLICTS.md
+          
+          git add MERGE_CONFLICTS.md
+          git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
+
+      - name: Push sync branch
+        run: |
+          git push origin "${{ steps.create_branch.outputs.branch_name }}"
+
+      - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # Add this explicitly
-          branch: ${{ steps.prep.outputs.branch_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ steps.create_branch.outputs.branch_name }}
           base: ${{ github.event.inputs.target_branch }}
-          title: "Merge upstream tag: ${{ github.event.inputs.upstream_tag }}"
+          title: "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}"
           body: |
-            This PR merges upstream tag **${{ github.event.inputs.upstream_tag }}** from danny-avila/LibreChat.git into `${{ github.event.inputs.target_branch }}`.
-
-            - Triggered by: `${{ github.actor }}`
-            - Strategy option: `${{ steps.display.outputs.strategy }}`
-
-            If this was opened as a **draft**, manual conflict resolution is needed.
-          draft: ${{ steps.merge.outcome == 'failure' }}
+            ## Upstream Sync: ${{ github.event.inputs.upstream_tag }}
+            
+            This PR syncs the upstream tag `${{ github.event.inputs.upstream_tag }}` from [danny-avila/LibreChat](https://github.com/danny-avila/LibreChat) into `${{ github.event.inputs.target_branch }}`.
+            
+            ### Details
+            - **Upstream tag**: `${{ github.event.inputs.upstream_tag }}`
+            - **Target branch**: `${{ github.event.inputs.target_branch }}`
+            - **Merge strategy**: `${{ github.event.inputs.merge_strategy || 'default' }}`
+            - **Triggered by**: @${{ github.actor }}
+            
+            ### Status
+            ${{ steps.merge_upstream.outcome == 'failure' && '⚠️ **Merge conflicts detected** - This PR requires manual resolution' || '✅ **Clean merge** - Ready for review' }}
+            
+            ---
+            *Automated upstream sync via GitHub Actions*
+          draft: ${{ steps.merge_upstream.outcome == 'failure' }}
           labels: |
             upstream-sync
+            automated
