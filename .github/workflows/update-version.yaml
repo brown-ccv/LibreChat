@@ -78,10 +78,10 @@ jobs:
           
           if [ -n "$STRATEGY" ]; then
             echo "Using merge strategy: $STRATEGY"
-            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG"
+            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG" -- . ':!.github/workflows'
           else
             echo "Using default merge strategy"
-            git merge --no-ff --no-edit "$TAG"
+            git merge --no-ff --no-edit "$TAG" -- . ':!.github/workflows'
           fi
 
       - name: Create sync summary
