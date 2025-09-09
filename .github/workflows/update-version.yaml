@@ -289,5 +289,4 @@ jobs:
           EOF
           )" \
             ${{ steps.merge_upstream.outcome == 'failure' && '--draft' || '' }} \
-            --label "upstream-sync" \
             --label "automated"
