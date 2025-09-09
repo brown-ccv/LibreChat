@@ -137,9 +137,48 @@ jobs:
           # Check if we have workflow changes and revert them before committing
           if [ "${{ steps.check_workflows.outputs.workflow_changes }}" = "true" ]; then
             echo "Detected workflow changes, reverting them before commit..."
+            
+            # Show what's currently staged
+            echo "=== Currently staged files ==="
+            git diff --cached --name-only
+            
+            # Show current workflow directory
+            echo "=== Current .github/workflows files ==="
+            ls -la .github/workflows/ 2>/dev/null || echo "No workflow directory"
+            
+            # Restore workflow files to target branch state
             git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
+            
+            # Add the restored workflow files to staging area
+            git add .github/workflows/
+            
+            echo "=== After workflow revert ==="
+            echo "Staged files:"
+            git diff --cached --name-only
+            echo "Workflow files:"
+            ls -la .github/workflows/ 2>/dev/null || echo "No workflow directory"
+            
             echo "Workflow files reverted to target branch state"
+          else
+            echo "No workflow changes detected, proceeding with merge as-is"
           fi
+          
+          # Final verification - check if any workflow files are still staged
+          echo "=== Final verification before commit ==="
+          STAGED_WORKFLOWS=$(git diff --cached --name-only | grep "^\.github/workflows/" || true)
+          if [ -n "$STAGED_WORKFLOWS" ]; then
+            echo "⚠️ WARNING: Workflow files still staged for commit:"
+            echo "$STAGED_WORKFLOWS"
+            echo "Unstaging workflow files..."
+            git reset HEAD -- .github/workflows/
+            echo "✅ Workflow files unstaged"
+          else
+            echo "✅ No workflow files staged for commit"
+          fi
+          
+          # Show final staged files
+          echo "=== Final staged files ==="
+          git diff --cached --name-only
           
           # Now commit the merge (with workflows excluded)
           git commit --no-edit -m "Merge upstream $TAG"
