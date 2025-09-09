@@ -78,10 +78,10 @@ jobs:
           
           if [ -n "$STRATEGY" ]; then
             echo "Using merge strategy: $STRATEGY"
-            git merge --no-ff -X "$STRATEGY" --no-edit "upstream/$TAG"
+            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG"
           else
             echo "Using default merge strategy"
-            git merge --no-ff --no-edit "upstream/$TAG"
+            git merge --no-ff --no-edit "$TAG"
           fi
 
       - name: Create sync summary
@@ -131,9 +131,11 @@ jobs:
           echo "" >> MERGE_CONFLICTS.md
           echo "This PR has been created as a draft. Please resolve conflicts manually:" >> MERGE_CONFLICTS.md
           echo "1. Clone this branch locally" >> MERGE_CONFLICTS.md
-          echo "2. Run: \`git merge upstream/${{ github.event.inputs.upstream_tag }}\`" >> MERGE_CONFLICTS.md
-          echo "3. Resolve conflicts and commit" >> MERGE_CONFLICTS.md
-          echo "4. Push changes and mark PR as ready for review" >> MERGE_CONFLICTS.md
+          echo "2. Add upstream remote: \`git remote add upstream https://github.com/danny-avila/LibreChat.git\`" >> MERGE_CONFLICTS.md
+          echo "3. Fetch upstream: \`git fetch upstream --tags\`" >> MERGE_CONFLICTS.md
+          echo "4. Run: \`git merge ${{ github.event.inputs.upstream_tag }}\`" >> MERGE_CONFLICTS.md
+          echo "5. Resolve conflicts and commit" >> MERGE_CONFLICTS.md
+          echo "6. Push changes and mark PR as ready for review" >> MERGE_CONFLICTS.md
           
           git add SYNC_SUMMARY.md MERGE_CONFLICTS.md
           git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
