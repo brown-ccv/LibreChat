@@ -288,5 +288,4 @@ jobs:
           *Automated upstream sync via GitHub Actions*
           EOF
           )" \
-            ${{ steps.merge_upstream.outcome == 'failure' && '--draft' || '' }} \
-            --label "automated"
+            ${{ steps.merge_upstream.outcome == 'failure' && '--draft' || '' }}
