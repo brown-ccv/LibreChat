@@ -81,11 +81,15 @@ jobs:
           if [ -n "$STRAT" ]; then
             echo "Using merge strategy option: -X $STRAT"
             set -x
-            git merge --no-ff -X "$STRAT" --no-edit "$SHA" -- . ':!.github/workflows'
+            git merge --no-ff -X "$STRAT" --no-edit "$SHA"
           else
             set -x
-            git merge --no-ff --no-edit "$SHA"  -- . ':!.github/workflows'
+            git merge --no-ff --no-edit "$SHA"
           fi
+
+          # Restore your original workflow files from main branch
+          echo "Restoring original workflow files from ${{ github.event.inputs.target_branch }}..."
+          git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
 
       - name: Handle merge conflicts (abort & mark)
         if: steps.merge.outcome == 'failure'
