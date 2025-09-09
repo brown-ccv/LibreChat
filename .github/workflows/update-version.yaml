@@ -253,55 +253,40 @@ jobs:
           
           git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
 
-      - name: Clean workspace before PR creation
+      - name: Push sync branch
         run: |
-          echo "=== Cleaning workspace before PR creation ==="
-          
-          # Remove any unstaged changes
-          echo "Discarding unstaged changes..."
-          git checkout -- .
-          
-          # Remove untracked files
-          echo "Removing untracked files..."
-          git clean -fd
-          
-          # Show final repository state
-          echo "=== Final repository state ==="
-          echo "Git status:"
-          git status --porcelain
-          echo "Staged files:"
-          git diff --cached --name-only || echo "No staged files"
-          echo "Modified files:"
-          git diff --name-only || echo "No modified files"
-          echo "Untracked files:"
-          git ls-files --others --exclude-standard || echo "No untracked files"
+          git push origin "${{ steps.create_branch.outputs.branch_name }}"
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ steps.create_branch.outputs.branch_name }}
-          base: ${{ github.event.inputs.target_branch }}
-          title: "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}"
-          body: |
-            ## Upstream Sync: ${{ github.event.inputs.upstream_tag }}
-            
-            This PR syncs the upstream tag `${{ github.event.inputs.upstream_tag }}` from [danny-avila/LibreChat](https://github.com/danny-avila/LibreChat) into `${{ github.event.inputs.target_branch }}`.
-            
-            ### Details
-            - **Upstream tag**: `${{ github.event.inputs.upstream_tag }}`
-            - **Target branch**: `${{ github.event.inputs.target_branch }}`
-            - **Merge strategy**: `${{ github.event.inputs.merge_strategy || 'default' }}`
-            - **Triggered by**: @${{ github.actor }}
-            
-            ### Status
-            ${{ steps.merge_upstream.outcome == 'failure' && '⚠️ **Merge conflicts detected** - This PR requires manual resolution' || '✅ **Clean merge** - Ready for review' }}
-            
-            ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '### ⚠️ Workflow Changes Detected
-            
-            This upstream tag contains GitHub workflow changes that were **excluded** from this merge for security reasons. See the `WORKFLOW_CHANGES.md` file in this PR for details on what changed and how to review them manually.' || '' }}
-            
-            ---
-            *Automated upstream sync via GitHub Actions*
-          draft: ${{ steps.merge_upstream.outcome == 'failure' }}
-          delete-branch: false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create PR body
+          cat > pr_body.md << 'EOF'
+          ## Upstream Sync: ${{ github.event.inputs.upstream_tag }}
+
+          This PR syncs the upstream tag `${{ github.event.inputs.upstream_tag }}` from [danny-avila/LibreChat](https://github.com/danny-avila/LibreChat) into `${{ github.event.inputs.target_branch }}`.
+
+          ### Details
+          - **Upstream tag**: `${{ github.event.inputs.upstream_tag }}`
+          - **Target branch**: `${{ github.event.inputs.target_branch }}`
+          - **Merge strategy**: `${{ github.event.inputs.merge_strategy || 'default' }}`
+          - **Triggered by**: @${{ github.actor }}
+
+          ### Status
+          ${{ steps.merge_upstream.outcome == 'failure' && '⚠️ **Merge conflicts detected** - This PR requires manual resolution' || '✅ **Clean merge** - Ready for review' }}
+
+          ${{ steps.check_workflows.outputs.workflow_changes == 'true' && '### ⚠️ Workflow Changes Detected
+
+          This upstream tag contains GitHub workflow changes that were **excluded** from this merge for security reasons. See the `WORKFLOW_CHANGES.md` file in this PR for details on what changed and how to review them manually.' || '' }}
+
+          ---
+          *Automated upstream sync via GitHub Actions*
+          EOF
+
+          # Create PR using GitHub CLI
+          if [ "${{ steps.merge_upstream.outcome }}" = "failure" ]; then
+            gh pr create --base "${{ github.event.inputs.target_branch }}" --head "${{ steps.create_branch.outputs.branch_name }}" --title "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}" --body-file pr_body.md --draft
+          else
+            gh pr create --base "${{ github.event.inputs.target_branch }}" --head "${{ steps.create_branch.outputs.branch_name }}" --title "🔄 Sync upstream: ${{ github.event.inputs.upstream_tag }}" --body-file pr_body.md
+          fi
