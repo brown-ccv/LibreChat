@@ -43,6 +43,7 @@ jobs:
         run: |
           git remote add upstream https://github.com/danny-avila/LibreChat.git
           git fetch upstream --tags --prune
+          git remote set-url origin https://github.com/${{ github.repository }}.git
 
       - name: Resolve upstream tag commit
         id: resolve_tag
