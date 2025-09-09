@@ -94,6 +94,8 @@ jobs:
           # Restore your original workflow files from main branch
           echo "Restoring original workflow files from ${{ github.event.inputs.target_branch }}..."
           git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
+          git add .github/workflows/
+          git commit -m "Restore workflow files from main to avoid workflow changes"
 
       - name: Handle merge conflicts (abort & mark)
         if: steps.merge.outcome == 'failure'
