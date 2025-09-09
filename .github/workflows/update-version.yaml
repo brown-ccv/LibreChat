@@ -101,7 +101,7 @@ jobs:
       
       - name: Push branch
         run: |
-          echo "git config --get remote.origin.url"
+          git config --get remote.origin.url
           git push --set-upstream origin "${{ steps.prep.outputs.branch_name }}"
           
       - name: Compute display values
