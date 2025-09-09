@@ -142,6 +142,10 @@ jobs:
           git add SYNC_SUMMARY.md MERGE_CONFLICTS.md
           git commit -m "chore: mark conflicts for upstream ${{ github.event.inputs.upstream_tag }} merge"
 
+      - name: Push sync branch
+        run: |
+          git push origin "${{ steps.create_branch.outputs.branch_name }}"
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
