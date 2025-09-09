@@ -67,47 +67,6 @@ jobs:
           git checkout -b "$SYNC_BRANCH" "origin/${{ github.event.inputs.target_branch }}"
           echo "Created branch: $SYNC_BRANCH"
 
-      - name: Merge upstream tag
-        id: merge_upstream
-        continue-on-error: true
-        run: |
-          TAG="${{ github.event.inputs.upstream_tag }}"
-          STRATEGY="${{ github.event.inputs.merge_strategy }}"
-          
-          echo "Merging upstream tag: $TAG"
-          
-          if [ -n "$STRATEGY" ]; then
-            echo "Using merge strategy: $STRATEGY"
-            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG"
-          else
-            echo "Using default merge strategy"
-            git merge --no-ff --no-edit "$TAG"
-          fi
-
-      - name: Remove workflow changes after merge
-        if: steps.merge_upstream.outcome == 'success'
-        run: |
-          echo "Checking for and removing workflow changes..."
-          
-          # Reset workflow directory to match the target branch
-          if [ -d .github/workflows ]; then
-            echo "Restoring workflow files to target branch state..."
-            git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
-            
-            # Stage the changes (git checkout doesn't auto-stage)
-            git add .github/workflows/
-            
-            # Check if there are any staged changes to commit
-            if ! git diff --quiet --cached; then
-              git commit -m "revert: exclude upstream workflow changes for security"
-              echo "Workflow changes reverted to match target branch"
-            else
-              echo "No workflow changes to revert"
-            fi
-          else
-            echo "No .github/workflows directory found"
-          fi
-
       - name: Check for workflow changes
         id: check_workflows
         run: |
@@ -145,6 +104,63 @@ jobs:
           else
             echo "workflow_changes=false" >> $GITHUB_OUTPUT
             echo "No workflow changes detected in upstream tag"
+          fi
+
+      - name: Merge upstream tag
+        id: merge_upstream
+        continue-on-error: true
+        run: |
+          TAG="${{ github.event.inputs.upstream_tag }}"
+          STRATEGY="${{ github.event.inputs.merge_strategy }}"
+          
+          echo "Merging upstream tag: $TAG"
+          
+          if [ -n "$STRATEGY" ]; then
+            echo "Using merge strategy: $STRATEGY"
+            git merge --no-ff -X "$STRATEGY" --no-edit "$TAG"
+          else
+            echo "Using default merge strategy"
+            git merge --no-ff --no-edit "$TAG"
+          fi
+
+      - name: Remove workflow changes after merge
+        if: steps.merge_upstream.outcome == 'success'
+        run: |
+          echo "Checking for and removing workflow changes..."
+          
+          # Only proceed if we detected workflow changes earlier
+          if [ "${{ steps.check_workflows.outputs.workflow_changes }}" = "true" ]; then
+            echo "Workflow changes were detected, reverting them..."
+            
+            # Reset workflow directory to match the target branch
+            if [ -d .github/workflows ]; then
+              echo "Restoring workflow files to target branch state..."
+              
+              # Get the current state of workflows for comparison
+              echo "Current workflow files:"
+              ls -la .github/workflows/ || echo "No files found"
+              
+              # Restore to target branch state
+              git checkout "origin/${{ github.event.inputs.target_branch }}" -- .github/workflows/
+              
+              # Stage all workflow changes
+              git add .github/workflows/
+              
+              echo "After restoration:"
+              ls -la .github/workflows/ || echo "No files found"
+              
+              # Check if there are any staged changes
+              if ! git diff --quiet --cached; then
+                git commit -m "revert: exclude upstream workflow changes for security"
+                echo "✅ Workflow changes reverted to match target branch"
+              else
+                echo "ℹ️ No workflow changes to revert (already matches target)"
+              fi
+            else
+              echo "⚠️ No .github/workflows directory found"
+            fi
+          else
+            echo "ℹ️ No workflow changes detected, skipping revert step"
           fi
 
       - name: Create sync summary
