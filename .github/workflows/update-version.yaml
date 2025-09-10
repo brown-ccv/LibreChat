@@ -30,9 +30,9 @@ jobs:
       - name: Checkout your fork (with full history)
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # we need history to merge
-          persist-credentials: true  # so we can push with GITHUB_TOKEN
-          token: ${{ secrets.GITHUB_TOKEN }} # Explicitly use the GITHUB_TOKEN
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure git user
         run: |
@@ -127,8 +127,8 @@ jobs:
       - name: Create PR
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # Add this explicitly
-          branch: ${{ steps.prep.outputs.branch_name }}
+          token: ${{ secrets.GITHUB_TOKEN }} 
+          branch: sync-upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}
           base: ${{ github.event.inputs.target_branch }}
           title: "Merge upstream tag: ${{ github.event.inputs.upstream_tag }}"
           body: |
