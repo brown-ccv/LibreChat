@@ -106,16 +106,15 @@ jobs:
           # Make a placeholder commit so the PR shows context (optional)
           echo "Upstream tag ${{ github.event.inputs.upstream_tag }} merge needs manual resolution" > MERGE_CONFLICTS.txt
           git add MERGE_CONFLICTS.txt
-          git commit -m "chore: upstream ${{
-            github.event.inputs.upstream_tag }} merge needs manual resolution"
+          git commit -m "chore: upstream ${{github.event.inputs.upstream_tag }} merge needs manual resolution"
       
-      - name: Push branch
-        env: 
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --get remote.origin.url
-          # git push --set-upstream origin "${{ steps.prep.outputs.branch_name }}"
-          git push --set-upstream https://github.com/${{ github.repository }}.git "${{ steps.prep.outputs.branch_name }}"
+      # - name: Push branch
+      #   env: 
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     git config --get remote.origin.url
+      #     # git push --set-upstream origin "${{ steps.prep.outputs.branch_name }}"
+      #     git push --set-upstream https://github.com/${{ github.repository }}.git "${{ steps.prep.outputs.branch_name }}"
           
       - name: Compute display values
         id: display
