@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout your fork (with full history)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # we need history to merge
           persist-credentials: true  # so we can push with GITHUB_TOKEN
@@ -43,7 +43,6 @@ jobs:
         run: |
           git remote add upstream https://github.com/danny-avila/LibreChat.git
           git fetch upstream --tags --prune
-          # git remote set-url origin https://github.com/${{ github.repository }}.git
 
       - name: Resolve upstream tag commit
         id: resolve_tag
@@ -66,13 +65,13 @@ jobs:
           echo "sha=$SHA" >> $GITHUB_OUTPUT
           echo "Upstream tag '$TAG' resolves to $SHA"
 
-      - name: Prepare merge branch
-        id: prep
-        run: |
-          BRANCH="sync-upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}"
-          echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
-          # Start from your target branch
-          git checkout -B "$BRANCH" "origin/${{ github.event.inputs.target_branch }}"
+      # - name: Prepare merge branch
+      #   id: prep
+      #   run: |
+      #     BRANCH="sync-upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}"
+      #     echo "branch_name=$BRANCH" >> $GITHUB_OUTPUT
+      #     # Start from your target branch
+      #     git checkout -B "$BRANCH" "origin/${{ github.event.inputs.target_branch }}"
 
       - name: Merge upstream tag (excluding workflows)
         id: merge
@@ -137,8 +136,9 @@ jobs:
 
             - Triggered by: `${{ github.actor }}`
             - Strategy option: `${{ steps.display.outputs.strategy }}`
+            - Workflows restored from base branch to avoid altering CI.
 
-            If this was opened as a **draft**, manual conflict resolution is needed.
+            ${{ steps.merge.outcome == 'failure' && '⚠️ Merge conflicts occurred; manual resolution required.' || '✅ Merge succeeded.' }}
           draft: ${{ steps.merge.outcome == 'failure' }}
           labels: |
             upstream-sync
