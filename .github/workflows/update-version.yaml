@@ -1,0 +1,172 @@
+name: merge upstream version -> PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_repo:
+        description: "owner/repo of upstream (e.g. upstreamOrg/project)"
+        required: false
+        default: ""
+      upstream_tag:
+        description: "Tag name to merge from upstream (e.g. v1.2.3)"
+        required: true
+      target_branch:
+        description: "Your fork branch to receive the merge (e.g. main)"
+        default: "main"
+        required: false
+      strategy_option:
+        description: "Optional merge strategy option (e.g. theirs, ours)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+jobs:
+  merge-upstream-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout your fork (with full history)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add and fetch upstream
+        run: |
+          git remote add upstream https://github.com/danny-avila/LibreChat.git
+          git fetch upstream --tags --prune
+
+      - name: Resolve upstream tag commit
+        id: resolve_tag
+        run: |
+          TAG="${{ github.event.inputs.upstream_tag }}"
+          if [ -z "$TAG" ]; then
+            echo "::error::TAG environment variable is not set."
+            exit 1
+          fi
+          echo "Resolving tag '$TAG' in upstream..."
+          # Try peeled SHA for annotated tags first
+          SHA="$(git ls-remote --tags upstream "$TAG^{}" | awk '{print $1}')"
+          if [ -z "$SHA" ]; then
+            SHA="$(git ls-remote --tags upstream "$TAG" | awk '{print $1}')"
+          fi
+          if [ -z "$SHA" ]; then
+            echo "::error::Tag '$TAG' not found in upstream repository."
+            exit 1
+          fi
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+          echo "Upstream tag '$TAG' resolves to $SHA"
+
+      - name: Merge upstream tag (excluding workflows)
+        id: merge
+        continue-on-error: true
+        env:
+          STRAT: ${{ github.event.inputs.strategy_option }}
+          SHA: ${{ steps.resolve_tag.outputs.sha }}
+        run: |
+          # Build merge command
+          if [ -n "$STRAT" ]; then
+            echo "Using merge strategy option: -X $STRAT"
+            set -x
+            git merge --no-ff -X "$STRAT" --no-edit "$SHA"
+          else
+            set -x
+            git merge --no-ff --no-edit "$SHA"
+          fi
+
+      - name: Restore workflows (only if merge succeeded)
+        if: steps.merge.outcome == 'success'
+        run: |
+          echo "Restoring original workflow files from ${{ github.event.inputs.target_branch }}..."
+          git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
+          git add .github/workflows/
+          git commit --amend --no-edit || echo "No workflow changes to restore"
+
+      - name: Handle merge conflicts (abort & mark)
+        env:
+          STRAT: ${{ github.event.inputs.strategy_option }}
+          SHA: ${{ steps.resolve_tag.outputs.sha }}
+        if: steps.merge.outcome == 'failure'
+        run: |
+          echo "Merge had conflicts. Aborting merge to keep repo clean."
+
+          # Capture conflicted files BEFORE aborting
+          echo "## Merge Conflicts Auto-Resolved" > MERGE_CONFLICTS.md
+          echo "" >> MERGE_CONFLICTS.md
+          echo "The following files had conflicts and were resolved using upstream version:" >> MERGE_CONFLICTS.md
+          echo "" >> MERGE_CONFLICTS.md
+
+          # List conflicted files while they still exist
+          if git status --porcelain | grep -q "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD"; then 
+            git status --porcelain | grep "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD" | while read status file; do
+              case "$status" in
+                UU*) echo "- \`$file\` - Both modified" >> MERGE_CONFLICTS.md ;;
+                AA*) echo "- \`$file\` - Both added" >> MERGE_CONFLICTS.md ;;
+                DD*) echo "- \`$file\` - Both deleted" >> MERGE_CONFLICTS.md ;;
+                AU*) echo "- \`$file\` - Added by us, modified by them" >> MERGE_CONFLICTS.md ;;
+                UA*) echo "- \`$file\` - Modified by us, added by them" >> MERGE_CONFLICTS.md ;;
+                DU*) echo "- \`$file\` - Deleted by us, modified by them" >> MERGE_CONFLICTS.md ;;
+                UD*) echo "- \`$file\` - Modified by us, deleted by them" >> MERGE_CONFLICTS.md ;;
+                *) echo "- \`$file\` - Status: $status" >> MERGE_CONFLICTS.md ;;
+              esac
+            done
+          else
+            echo "- No specific conflicted files detected (general merge failure)" >> MERGE_CONFLICTS.md
+          fi
+          
+          echo "" >> MERGE_CONFLICTS.md
+          echo "**Action needed:** Review changes and manually restore any needed customizations." >> MERGE_CONFLICTS.md
+          
+          
+          # Abort the conflicted merge
+          git merge --abort
+
+          # Create a clean merge commit using upstream's version for conflicts
+          git reset --hard "$SHA"
+
+
+          # Restore workflows to avoid permission issues
+          echo "Restoring original workflow files..."
+          git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
+          git add .github/workflows/
+          git commit --amend --no-edit || echo "No workflow changes to restore"
+          
+          # Add the conflict report
+          git add MERGE_CONFLICTS.md
+          git commit -m "docs: list files that had merge conflicts (auto-resolved with upstream)"
+          
+      - name: Compute display values
+        id: display
+        run: |
+          if [ -n "${{ github.event.inputs.strategy_option }}" ]; then
+            echo "strategy=${{ github.event.inputs.strategy_option }}" >> $GITHUB_OUTPUT
+          else
+            echo "strategy=default (recursive)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} 
+          branch: sync-upstream-${{ github.event.inputs.upstream_tag }}-${{ github.run_id }}
+          base: ${{ github.event.inputs.target_branch }}
+          title: "Merge upstream tag: ${{ github.event.inputs.upstream_tag }}"
+          body: |
+            This PR merges upstream tag **${{ github.event.inputs.upstream_tag }}** from danny-avila/LibreChat.git into `${{ github.event.inputs.target_branch }}`.
+
+            - Triggered by: `${{ github.actor }}`
+            - Strategy option: `${{ steps.display.outputs.strategy }}`
+            - Workflows restored from base branch to avoid altering CI.
+
+            ${{ steps.merge.outcome == 'failure' && '⚠️ Merge conflicts occurred; manual resolution required.' || '✅ Merge succeeded.' }}
+          draft: ${{ steps.merge.outcome == 'failure' }}
+          labels: |
+            upstream-sync
