@@ -92,7 +92,32 @@ jobs:
         if: steps.merge.outcome == 'failure'
         run: |
           echo "Merge had conflicts. Aborting merge to keep repo clean."
-          git merge --abort || true
+
+          # Get list of conflicted files
+          echo "## Merge Conflicts Report" > MERGE_CONFLICTS.md
+          echo "" >> MERGE_CONFLICTS.md
+          echo "The following files have merge conflicts that need manual resolution:" >> MERGE_CONFLICTS.md
+          echo "" >> MERGE_CONFLICTS.md
+
+          # List conflicted files
+          git status --porcelain | grep "^UU\|^AA\|^DD" | while read status file; do
+            echo "- \`$file\` (status: $status)" >> MERGE_CONFLICTS.md
+          done
+          
+          echo "" >> MERGE_CONFLICTS.md
+          echo "### Instructions:" >> MERGE_CONFLICTS.md
+          echo "1. Check out this branch locally" >> MERGE_CONFLICTS.md
+          echo "2. Resolve conflicts in the files listed above" >> MERGE_CONFLICTS.md
+          echo "3. Run \`git add <resolved-files>\`" >> MERGE_CONFLICTS.md
+          echo "4. Run \`git commit\` to complete the merge" >> MERGE_CONFLICTS.md
+          echo "5. Push the resolved changes" >> MERGE_CONFLICTS.md
+
+           # Add all files including conflicted ones
+          git add -A
+
+          # Commit the conflicted state (this completes the merge with conflicts preserved)
+          git -c core.editor=true commit --no-edit || git commit -m "WIP: merge upstream ${{ github.event.inputs.upstream_tag }} with conflicts"
+
           echo "::warning::Merge conflicts detected. Opening a DRAFT PR to signal manual resolution."
           # Make a placeholder commit so the PR shows context (optional)
           echo "Upstream tag ${{ github.event.inputs.upstream_tag }} merge needs manual resolution" > MERGE_CONFLICTS.txt
