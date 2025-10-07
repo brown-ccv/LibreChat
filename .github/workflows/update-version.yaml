@@ -91,6 +91,9 @@ jobs:
           git commit --amend --no-edit || echo "No workflow changes to restore"
 
       - name: Handle merge conflicts (abort & mark)
+        env:
+          STRAT: ${{ github.event.inputs.strategy_option }}
+          SHA: ${{ steps.resolve_tag.outputs.sha }}
         if: steps.merge.outcome == 'failure'
         run: |
           echo "Merge had conflicts. Aborting merge to keep repo clean."
@@ -127,7 +130,7 @@ jobs:
           git merge --abort
 
           # Create a clean merge commit using upstream's version for conflicts
-          git merge --no-ff --strategy-option=theirs --no-edit "${{ steps.resolve_tag.outputs.sha }}"
+          git reset --hard "$SHA"
 
 
           # Restore workflows to avoid permission issues
