@@ -59,7 +59,7 @@ jobs:
             SHA="$(git ls-remote --tags upstream "$TAG" | awk '{print $1}')"
           fi
           if [ -z "$SHA" ]; then
-            echo "::error::Tag '$TAG' not found in upstream '${{ steps.upstream.outputs.repo }}'."
+            echo "::error::Tag '$TAG' not found in upstream repository."
             exit 1
           fi
           echo "sha=$SHA" >> $GITHUB_OUTPUT
@@ -82,47 +82,63 @@ jobs:
             git merge --no-ff --no-edit "$SHA"
           fi
 
-          # Restore your original workflow files from main branch
+      - name: Restore workflows (only if merge succeeded)
+        if: steps.merge.outcome == 'success'
+        run: |
           echo "Restoring original workflow files from ${{ github.event.inputs.target_branch }}..."
           git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
           git add .github/workflows/
-          git commit -m "Restore workflow files from main to avoid workflow changes"
+          git commit --amend --no-edit || echo "No workflow changes to restore"
 
       - name: Handle merge conflicts (abort & mark)
         if: steps.merge.outcome == 'failure'
         run: |
           echo "Merge had conflicts. Aborting merge to keep repo clean."
 
-          # Get list of conflicted files
-          echo "## Merge Conflicts Report" > MERGE_CONFLICTS.md
+          # Capture conflicted files BEFORE aborting
+          echo "## Merge Conflicts Auto-Resolved" > MERGE_CONFLICTS.md
           echo "" >> MERGE_CONFLICTS.md
-          echo "The following files have merge conflicts that need manual resolution:" >> MERGE_CONFLICTS.md
+          echo "The following files had conflicts and were resolved using upstream version:" >> MERGE_CONFLICTS.md
           echo "" >> MERGE_CONFLICTS.md
 
-          # List conflicted files
-          git status --porcelain | grep "^UU\|^AA\|^DD" | while read status file; do
-            echo "- \`$file\` (status: $status)" >> MERGE_CONFLICTS.md
-          done
+          # List conflicted files while they still exist
+          if git status --porcelain | grep -q "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD"; then 
+            git status --porcelain | grep "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD" | while read status file; do
+              case "$status" in
+                UU*) echo "- \`$file\` - Both modified" >> MERGE_CONFLICTS.md ;;
+                AA*) echo "- \`$file\` - Both added" >> MERGE_CONFLICTS.md ;;
+                DD*) echo "- \`$file\` - Both deleted" >> MERGE_CONFLICTS.md ;;
+                AU*) echo "- \`$file\` - Added by us, modified by them" >> MERGE_CONFLICTS.md ;;
+                UA*) echo "- \`$file\` - Modified by us, added by them" >> MERGE_CONFLICTS.md ;;
+                DU*) echo "- \`$file\` - Deleted by us, modified by them" >> MERGE_CONFLICTS.md ;;
+                UD*) echo "- \`$file\` - Modified by us, deleted by them" >> MERGE_CONFLICTS.md ;;
+                *) echo "- \`$file\` - Status: $status" >> MERGE_CONFLICTS.md ;;
+              esac
+            done
+          else
+            echo "- No specific conflicted files detected (general merge failure)" >> MERGE_CONFLICTS.md
+          fi
           
           echo "" >> MERGE_CONFLICTS.md
-          echo "### Instructions:" >> MERGE_CONFLICTS.md
-          echo "1. Check out this branch locally" >> MERGE_CONFLICTS.md
-          echo "2. Resolve conflicts in the files listed above" >> MERGE_CONFLICTS.md
-          echo "3. Run \`git add <resolved-files>\`" >> MERGE_CONFLICTS.md
-          echo "4. Run \`git commit\` to complete the merge" >> MERGE_CONFLICTS.md
-          echo "5. Push the resolved changes" >> MERGE_CONFLICTS.md
+          echo "**Action needed:** Review changes and manually restore any needed customizations." >> MERGE_CONFLICTS.md
+          
+          
+          # Abort the conflicted merge
+          git merge --abort
 
-           # Add all files including conflicted ones
-          git add -A
+          # Create a clean merge commit using upstream's version for conflicts
+          git merge --no-ff --strategy-option=theirs --no-edit "${{ steps.resolve_tag.outputs.sha }}"
 
-          # Commit the conflicted state (this completes the merge with conflicts preserved)
-          git -c core.editor=true commit --no-edit || git commit -m "WIP: merge upstream ${{ github.event.inputs.upstream_tag }} with conflicts"
 
-          echo "::warning::Merge conflicts detected. Opening a DRAFT PR to signal manual resolution."
-          # Make a placeholder commit so the PR shows context (optional)
-          echo "Upstream tag ${{ github.event.inputs.upstream_tag }} merge needs manual resolution" > MERGE_CONFLICTS.txt
-          git add MERGE_CONFLICTS.txt
-          git commit -m "chore: upstream ${{github.event.inputs.upstream_tag }} merge needs manual resolution"
+          # Restore workflows to avoid permission issues
+          echo "Restoring original workflow files..."
+          git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
+          git add .github/workflows/
+          git commit --amend --no-edit || echo "No workflow changes to restore"
+          
+          # Add the conflict report
+          git add MERGE_CONFLICTS.md
+          git commit -m "docs: list files that had merge conflicts (auto-resolved with upstream)"
           
       - name: Compute display values
         id: display
