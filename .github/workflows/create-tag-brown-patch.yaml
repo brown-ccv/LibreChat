@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   create-tag:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.title, 'sync-upstream')
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'sync-upstream')
     runs-on: ubuntu-latest
     
     steps:
