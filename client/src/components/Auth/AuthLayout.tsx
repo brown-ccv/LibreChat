@@ -1,9 +1,9 @@
-import { TranslationKeys, useLocalize } from '~/hooks';
+import { ThemeSelector } from '@librechat/client';
 import { TStartupConfig } from 'librechat-data-provider';
 import { ErrorMessage } from '~/components/Auth/ErrorMessage';
+import { TranslationKeys, useLocalize } from '~/hooks';
 import SocialLoginRender from './SocialLoginRender';
 import { BlinkAnimation } from './BlinkAnimation';
-import { ThemeSelector } from '~/components';
 import { Banner } from '../Banners';
 import Footer from './Footer';
 import { useContext } from 'react';
@@ -66,8 +66,7 @@ function AuthLayout({
   return (
     <div className="relative flex min-h-screen flex-col bg-white dark:bg-gray-900">
       <Banner />
-   
-      
+
       <DisplayError />
       <div className="absolute bottom-0 left-0 md:m-4">
         <ThemeSelector />
