@@ -1,4 +1,4 @@
-import { ThemeSelector } from '@librechat/client';
+import { ThemeContext, ThemeSelector } from '@librechat/client';
 import { TStartupConfig } from 'librechat-data-provider';
 import { ErrorMessage } from '~/components/Auth/ErrorMessage';
 import { TranslationKeys, useLocalize } from '~/hooks';
@@ -7,7 +7,7 @@ import { BlinkAnimation } from './BlinkAnimation';
 import { Banner } from '../Banners';
 import Footer from './Footer';
 import { useContext } from 'react';
-import { ThemeContext } from '~/hooks';
+
 
 function AuthLayout({
   children,
