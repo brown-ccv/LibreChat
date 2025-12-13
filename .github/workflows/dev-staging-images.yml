@@ -1,4 +1,4 @@
-name: Docker Compose Build Latest Main Image Tag (Manual Dispatch)
+name: Docker Dev Staging Images Build
 
 on:
   workflow_dispatch:
@@ -11,19 +11,15 @@ jobs:
         include:
           - target: api-build
             file: Dockerfile.multi
-            image_name: librechat-api
+            image_name: lc-dev-staging-api
           - target: node
             file: Dockerfile
-            image_name: librechat
+            image_name: lc-dev-staging
 
     steps:
+      # Check out the repository
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Fetch tags and set the latest tag
-        run: |
-          git fetch --tags
-          echo "LATEST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)" >> $GITHUB_ENV
 
       # Set up QEMU
       - name: Set up QEMU
@@ -61,9 +57,10 @@ jobs:
           file: ${{ matrix.file }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ env.LATEST_TAG }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:${{ env.LATEST_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:latest
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.target }}
+
