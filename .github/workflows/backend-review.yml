@@ -7,7 +7,7 @@ on:
       - release/*
     paths:
       - 'api/**'
-      - 'packages/**'
+      - 'packages/api/**'
 jobs:
   tests_Backend:
     name: Run Backend unit tests
