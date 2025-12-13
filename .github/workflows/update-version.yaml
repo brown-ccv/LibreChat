@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       upstream_repo:
-        description: "owner/repo of upstream (e.g. upstreamOrg/project)"
+        description: "owner/repo of upstream (default: danny-avila/LibreChat)"
         required: false
-        default: ""
+        default: "danny-avila/LibreChat"
       upstream_tag:
         description: "Tag name to merge from upstream (e.g. v1.2.3)"
         required: true
@@ -41,7 +41,7 @@ jobs:
 
       - name: Add and fetch upstream
         run: |
-          git remote add upstream https://github.com/danny-avila/LibreChat.git
+          git remote add upstream https://github.com/${{ github.event.inputs.upstream_repo }}.git
           git fetch upstream --tags --prune
 
       - name: Resolve upstream tag commit
@@ -99,31 +99,33 @@ jobs:
           echo "Merge had conflicts. Aborting merge to keep repo clean."
 
           # Capture conflicted files BEFORE aborting
-          echo "## Merge Conflicts Auto-Resolved" > MERGE_CONFLICTS.md
-          echo "" >> MERGE_CONFLICTS.md
-          echo "The following files had conflicts and were resolved using upstream version:" >> MERGE_CONFLICTS.md
-          echo "" >> MERGE_CONFLICTS.md
+          CONFLICT_REPORT=$(cat <<'EOF'
+          ## Merge Conflicts Auto-Resolved
 
-          # List conflicted files while they still exist
+          The following files had conflicts and were resolved using upstream version:
+
+          EOF
+          )
+
+          # List conflicted files while they still exist and append to the variable
           if git status --porcelain | grep -q "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD"; then 
-            git status --porcelain | grep "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD" | while read status file; do
+            CONFLICT_REPORT+=$(git status --porcelain | grep "^UU\|^AA\|^DD\|^AU\|^UA\|^DU\|^UD" | while read status file; do
               case "$status" in
-                UU*) echo "- \`$file\` - Both modified" >> MERGE_CONFLICTS.md ;;
-                AA*) echo "- \`$file\` - Both added" >> MERGE_CONFLICTS.md ;;
-                DD*) echo "- \`$file\` - Both deleted" >> MERGE_CONFLICTS.md ;;
-                AU*) echo "- \`$file\` - Added by us, modified by them" >> MERGE_CONFLICTS.md ;;
-                UA*) echo "- \`$file\` - Modified by us, added by them" >> MERGE_CONFLICTS.md ;;
-                DU*) echo "- \`$file\` - Deleted by us, modified by them" >> MERGE_CONFLICTS.md ;;
-                UD*) echo "- \`$file\` - Modified by us, deleted by them" >> MERGE_CONFLICTS.md ;;
-                *) echo "- \`$file\` - Status: $status" >> MERGE_CONFLICTS.md ;;
+                UU*) echo "- \`$file\` - Both modified" ;;
+                AA*) echo "- \`$file\` - Both added" ;;
+                DD*) echo "- \`$file\` - Both deleted" ;;
+                AU*) echo "- \`$file\` - Added by us, modified by them" ;;
+                UA*) echo "- \`$file\` - Modified by us, added by them" ;;
+                DU*) echo "- \`$file\` - Deleted by us, modified by them" ;;
+                UD*) echo "- \`$file\` - Modified by us, deleted by them" ;;
+                *) echo "- \`$file\` - Status: $status" ;;
               esac
-            done
+            done)
           else
-            echo "- No specific conflicted files detected (general merge failure)" >> MERGE_CONFLICTS.md
+            CONFLICT_REPORT+=$'\n- No specific conflicted files detected (general merge failure)'
           fi
-          
-          echo "" >> MERGE_CONFLICTS.md
-          echo "**Action needed:** Review changes and manually restore any needed customizations." >> MERGE_CONFLICTS.md
+
+          CONFLICT_REPORT+=$'\n\n**Action needed:** Review changes and manually restore any needed customizations.'
           
           
           # Abort the conflicted merge
@@ -136,12 +138,13 @@ jobs:
           # Restore workflows to avoid permission issues
           echo "Restoring original workflow files..."
           git restore --source=origin/${{ github.event.inputs.target_branch }} .github/workflows/
-          git add .github/workflows/
-          git commit --amend --no-edit || echo "No workflow changes to restore"
-          
-          # Add the conflict report
-          git add MERGE_CONFLICTS.md
+
+          # write the conflict report to the file in the clean directory
+          echo "$CONFLICT_REPORT" > MERGE_CONFLICTS.md
+
+          git add .github/workflows/ MERGE_CONFLICTS.md
           git commit -m "docs: list files that had merge conflicts (auto-resolved with upstream)"
+          
           
       - name: Compute display values
         id: display
