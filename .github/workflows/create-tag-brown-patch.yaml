@@ -22,14 +22,19 @@ jobs:
           ref: main
 
       - name: Create tag
+        shell: bash
         run: |
           # Extract tag from PR title or use timestamp
           PR_TITLE="${{ github.event.pull_request.title }}"
+          echo "Original PR Title: $PR_TITLE"
+
+          # Use sed for robust version extraction, works in any shell
+          EXTRACTED_VERSION=$(echo "$PR_TITLE" | sed -n 's/.*\(v[0-9]\+\.[0-9]\+\.[0-9]\+[a-zA-Z0-9\-\.]*\).*/\1/pI')
           
-          if [[ "$PR_TITLE" =~ ([vV]?[0-9]+\.[0-9]+\.[0-9]+[a-zA-Z0-9\-\.]*) ]]; then
-            EXTRACTED_VERSION="${BASH_REMATCH[1]}"
+          if [ -n "$EXTRACTED_VERSION" ]; then
             TAG_NAME="${EXTRACTED_VERSION}-brown-patch"
           else
+            echo "Could not extract version from title. Falling back to timestamp."
             TAG_NAME="$(date +%Y%m%d-%H%M%S)-brown-patch"
           fi
           
