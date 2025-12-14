@@ -72,3 +72,12 @@ The final step is to manually run the workflow that builds the new Docker image 
 4.  Click the **Run workflow** dropdown and then the **Run workflow** button to start the build.
 
 The action will automatically find the latest tag ending in `-brown-patch`, build the Docker images, and push them to your repository's packages on `ghcr.io`.
+
+## Step 4: Deploy the New Image
+
+1.  Once the build action from Step 3 is complete, navigate to the **Packages** tab in your GitHub repository and click on the **`librechat-api`** package name.
+2.  Find the latest version (e.g., `v0.8.1-brown-patch`) and copy its full container image URL.
+3.  Go to your BKE deployment repository.
+4.  Open the `ccv-librechat/base/librechat.yaml` file and replace the existing container `image` value with the URL you just copied.
+5.  Apply the changes and monitor the pod logs for any errors.
+6.  If the pod starts successfully and there are no errors, the update is complete.
