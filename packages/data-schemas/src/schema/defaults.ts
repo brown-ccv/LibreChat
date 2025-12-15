@@ -134,19 +134,25 @@ export const conversationPreset = {
   useResponsesApi: {
     type: Boolean,
   },
-  /** OpenAI Responses API / Anthropic API */
+  /** OpenAI Responses API / Anthropic API / Google API */
   web_search: {
     type: Boolean,
   },
-  /** Google */
-  grounding: {
+  disableStreaming: {
     type: Boolean,
+  },
+  fileTokenLimit: {
+    type: Number,
   },
   /** Reasoning models only */
   reasoning_effort: {
     type: String,
   },
   reasoning_summary: {
+    type: String,
+  },
+  /** Verbosity control */
+  verbosity: {
     type: String,
   },
 };
