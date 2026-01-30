@@ -72,6 +72,12 @@ jobs:
           STRAT: ${{ github.event.inputs.strategy_option }}
           SHA: ${{ steps.resolve_tag.outputs.sha }}
         run: |
+          # Remove MERGE_CONFLICTS.md to avoid conflicts (it's auto-generated)
+          if [ -f "MERGE_CONFLICTS.md" ]; then
+            git rm -f MERGE_CONFLICTS.md || true
+            git commit -m "chore: remove MERGE_CONFLICTS.md before merge" || true
+          fi
+
           # Build merge command
           if [ -n "$STRAT" ]; then
             echo "Using merge strategy option: -X $STRAT"
