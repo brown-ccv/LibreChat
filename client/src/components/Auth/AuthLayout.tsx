@@ -71,7 +71,6 @@ function AuthLayout({
 
       <main className="flex flex-grow items-center justify-center">
         <div className="flex flex-col items-center">
-
           <BlinkAnimation active={isFetching}>
             <div className="mb-4 h-16 w-48 bg-cover">
               <img
@@ -83,21 +82,21 @@ function AuthLayout({
           </BlinkAnimation>
 
           <div className="w-authPageWidth overflow-hidden bg-white px-6 py-4 dark:bg-gray-900 sm:max-w-md sm:rounded-lg">
-          {!hasStartupConfigError && !isFetching && header && (
-            <h1
-              className="mb-4 text-center text-3xl font-semibold text-black dark:text-white"
-              style={{ userSelect: 'none' }}
-            >
-              {header}
-            </h1>
-          )}
-          {children}
-          {!pathname.includes('2fa') &&
-            (pathname.includes('login') || pathname.includes('register')) && (
-              <SocialLoginRender startupConfig={startupConfig} />
+            {!hasStartupConfigError && !isFetching && header && (
+              <h1
+                className="mb-4 text-center text-3xl font-semibold text-black dark:text-white"
+                style={{ userSelect: 'none' }}
+              >
+                {header}
+              </h1>
             )}
+            {children}
+            {!pathname.includes('2fa') &&
+              (pathname.includes('login') || pathname.includes('register')) && (
+                <SocialLoginRender startupConfig={startupConfig} />
+              )}
           </div>
-        </div>      
+        </div>
       </main>
       <Footer startupConfig={startupConfig} />
     </div>
