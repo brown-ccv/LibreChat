@@ -22,11 +22,19 @@ The action will create a new branch and a pull request.
 The automation intentionally does not merge changes to the `.github/workflows` directory to protect your custom CI/CD. You must sync these files manually.
 
 1.  Check out the branch created by the workflow (e.g., `sync-upstream-v0.8.1-12345`).
-2.  Run the following command, replacing `v0.8.1` with the tag you are merging. This command will overwrite your local workflow files with the ones from the official upstream tag.
+
+
+2. 
+    ```bash
+    # Fetch the upstream tags
+    git fetch upstream --tags
+    ```
+
+3.  Run the following command, replacing `v0.8.1` with the tag you are merging. This command will overwrite your local workflow files with the ones from the official upstream tag.
 
     ```bash
     # Replace v0.8.1 with the correct upstream tag
-    git checkout v0.8.1 -- .github/workflows
+    git checkout tags/v0.8.1 -- .github/workflows
     ```
 
 3.  Commit the synchronized workflow files to your branch.
