@@ -69,7 +69,7 @@ function AuthLayout({
         <ThemeSelector />
       </div>
 
-      <div className="flex flex-grow items-center justify-center">
+      <main className="flex flex-grow items-center justify-center">
         <div className="flex flex-col items-center">
           <BlinkAnimation active={isFetching}>
             <div className="mb-4 h-16 w-48 bg-cover">
@@ -97,8 +97,7 @@ function AuthLayout({
               )}
           </div>
         </div>
-      </div>
-
+      </main>
       <Footer startupConfig={startupConfig} />
     </div>
   );
