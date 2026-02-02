@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { ChevronDown, Eye, EyeOff } from 'lucide-react';
 import * as Menu from '@ariakit/react/menu';
-import type { UseFormRegister } from 'react-hook-form';
+import { ChevronDown, Eye, EyeOff } from 'lucide-react';
+import { Input, Label, DropdownPopup } from '@librechat/client';
 import type { SearchApiKeyFormData } from '~/hooks/Plugins/useAuthSearchTool';
+import type { UseFormRegister } from 'react-hook-form';
 import type { MenuItemProps } from '~/common';
-import { Input, Label } from '~/components/ui';
-import DropdownPopup from '~/components/ui/DropdownPopup';
 import { useLocalize } from '~/hooks';
 
 interface InputConfig {
@@ -115,9 +114,15 @@ export default function InputSection({
                 >
                   <div className="relative h-4 w-4">
                     {passwordVisibility[name] ? (
-                      <EyeOff className="absolute inset-0 h-4 w-4 duration-200 animate-in fade-in" />
+                      <EyeOff
+                        className="absolute inset-0 h-4 w-4 duration-200 animate-in fade-in"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <Eye className="absolute inset-0 h-4 w-4 duration-200 animate-in fade-in" />
+                      <Eye
+                        className="absolute inset-0 h-4 w-4 duration-200 animate-in fade-in"
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                 </button>
