@@ -94,8 +94,14 @@ function EndpointMenuContent({
   endpointIndex: number;
 }) {
   const localize = useLocalize();
-  const { agentsMap, assistantsMap, modelSpecs, selectedValues, endpointSearchValues,
-    modelSpecsPrioritize } = useModelSelectorContext();
+  const {
+    agentsMap,
+    assistantsMap,
+    modelSpecs,
+    selectedValues,
+    endpointSearchValues,
+    modelSpecsPrioritize,
+  } = useModelSelectorContext();
 
   const { modelSpec: selectedSpec } = selectedValues;
   const searchValue = endpointSearchValues[endpoint.value] || '';
@@ -130,16 +136,17 @@ function EndpointMenuContent({
     : null;
 
   const shouldRenderModels = !modelSpecsPrioritize || endpointSpecs.length === 0;
-  
+
   return (
     <>
       {endpointSpecs.map((spec: TModelSpec) => (
         <ModelSpecItem key={spec.name} spec={spec} isSelected={selectedSpec === spec.name} />
       ))}
-      {shouldRenderModels && (filteredModels
-        ? renderEndpointModels(endpoint, endpoint.models || [], filteredModels, endpointIndex)
-        : endpoint.models &&
-          renderEndpointModels(endpoint, endpoint.models, undefined, endpointIndex))}
+      {shouldRenderModels &&
+        (filteredModels
+          ? renderEndpointModels(endpoint, endpoint.models || [], filteredModels, endpointIndex)
+          : endpoint.models &&
+            renderEndpointModels(endpoint, endpoint.models, undefined, endpointIndex))}
     </>
   );
 }

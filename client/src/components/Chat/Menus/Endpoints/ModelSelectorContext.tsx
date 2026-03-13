@@ -55,7 +55,6 @@ interface ModelSelectorProviderProps {
   startupConfig: t.TStartupConfig | undefined;
 }
 
-
 // add to context value and type
 
 export function ModelSelectorProvider({ children, startupConfig }: ModelSelectorProviderProps) {
