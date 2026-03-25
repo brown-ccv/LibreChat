@@ -89,6 +89,15 @@ function AuthLayout({
                   Each model is rated by its token consumption cost. Higher-tier models offer
                   greater reasoning capability but consume more tokens. Please select models
                   appropriate to your task to help manage your monthly max usage ($20).
+                  For more information on token costs, please visit this{' '}<a
+                    href="https://librechat.ai/docs/usage-and-billing/managing-costs#model-tiers"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-green-600 underline hover:text-green-700 focus:text-green-700 dark:text-green-500 dark:hover:text-green-400 dark:focus:text-green-400"
+                  >
+                    pricing list
+                  </a>
+                  .
                 </p>
                 <div className="flex flex-col gap-2 text-sm">
                   <div className="flex items-center gap-2">
