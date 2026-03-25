@@ -88,7 +88,7 @@ function AuthLayout({
                 <p className="mb-4 text-xs leading-relaxed text-text-secondary">
                   Each model is rated by its token consumption cost. Higher-tier models offer
                   greater reasoning capability but consume more tokens. Please select models
-                  appropriate to your task to help manage institutional usage.
+                  appropriate to your task to help manage your monthly max usage ($20).
                 </p>
                 <div className="flex flex-col gap-2 text-sm">
                   <div className="flex items-center gap-2">
