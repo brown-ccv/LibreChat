@@ -1,4 +1,4 @@
-name: Brown University -Docker Compose Build Latest Patched Image Tag (Manual Dispatch)
+name: Build Image Tag (Manual Dispatch) - Testing
 
 on:
   workflow_dispatch:
