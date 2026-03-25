@@ -81,6 +81,31 @@ function AuthLayout({
             </div>
           </BlinkAnimation>
 
+          <div className="flex flex-col items-center lg:flex-row lg:items-start lg:gap-6">
+            {pathname.includes('login') && (
+              <div className="hidden w-64 rounded-2xl border border-border-light bg-surface-secondary px-5 py-4 lg:block">
+                <p className="mb-1 text-sm font-semibold text-text-primary">Model Token Cost</p>
+                <p className="mb-4 text-xs leading-relaxed text-text-secondary">
+                  Each model is rated by its token consumption cost. Higher-tier models offer
+                  greater reasoning capability but consume more tokens. Please select models
+                  appropriate to your task to help manage institutional usage.
+                </p>
+                <div className="flex flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 font-semibold text-green-600 dark:text-green-400">$</span>
+                    <span className="text-text-secondary">Economy</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 font-semibold text-yellow-600 dark:text-yellow-400">$$</span>
+                    <span className="text-text-secondary">Standard</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 font-semibold text-red-600 dark:text-red-400">$$$</span>
+                    <span className="text-text-secondary">Premium</span>
+                  </div>
+                </div>
+              </div>
+            )}
           <div className="w-authPageWidth overflow-hidden bg-white px-6 py-4 dark:bg-gray-900 sm:max-w-md sm:rounded-lg">
             {!hasStartupConfigError && !isFetching && header && (
               <h1
@@ -95,6 +120,7 @@ function AuthLayout({
               (pathname.includes('login') || pathname.includes('register')) && (
                 <SocialLoginRender startupConfig={startupConfig} />
               )}
+          </div>
           </div>
         </div>
       </main>
