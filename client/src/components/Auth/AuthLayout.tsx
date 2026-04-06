@@ -81,20 +81,63 @@ function AuthLayout({
             </div>
           </BlinkAnimation>
 
-          <div className="w-authPageWidth overflow-hidden bg-white px-6 py-4 dark:bg-gray-900 sm:max-w-md sm:rounded-lg">
-            {!hasStartupConfigError && !isFetching && header && (
-              <h1
-                className="mb-4 text-center text-3xl font-semibold text-black dark:text-white"
-                style={{ userSelect: 'none' }}
-              >
-                {header}
-              </h1>
+          <div className="flex flex-col items-center lg:flex-row lg:items-start lg:gap-6">
+            {pathname.includes('login') && (
+              <div className="hidden w-64 rounded-2xl border border-border-light bg-surface-secondary px-5 py-4 lg:block">
+                <p className="mb-1 text-sm font-semibold text-text-primary">
+                  {localize('com_auth_model_token_cost')}
+                </p>
+                <p className="mb-4 text-xs leading-relaxed text-text-secondary">
+                  {localize('com_auth_model_token_cost_description')}{' '}
+                  <a
+                    href="https://docs.google.com/spreadsheets/d/1BY24ps-nLNp3wldrtRjvo0Edqmzyf3t97qS5flEZ-e0/edit?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-green-600 underline hover:text-green-700 focus:text-green-700 dark:text-green-500 dark:hover:text-green-400 dark:focus:text-green-400"
+                  >
+                    {localize('com_auth_model_token_cost_pricing_list')}
+                  </a>
+                  .
+                </p>
+                <div className="flex flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 font-semibold text-green-600 dark:text-green-400">$</span>
+                    <span className="text-text-secondary">
+                      {localize('com_auth_model_token_cost_economy')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 font-semibold text-yellow-600 dark:text-yellow-400">
+                      $$
+                    </span>
+                    <span className="text-text-secondary">
+                      {localize('com_auth_model_token_cost_standard')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-8 font-semibold text-red-600 dark:text-red-400">$$$</span>
+                    <span className="text-text-secondary">
+                      {localize('com_auth_model_token_cost_premium')}
+                    </span>
+                  </div>
+                </div>
+              </div>
             )}
-            {children}
-            {!pathname.includes('2fa') &&
-              (pathname.includes('login') || pathname.includes('register')) && (
-                <SocialLoginRender startupConfig={startupConfig} />
+            <div className="w-authPageWidth overflow-hidden bg-white px-6 py-4 dark:bg-gray-900 sm:max-w-md sm:rounded-lg">
+              {!hasStartupConfigError && !isFetching && header && (
+                <h1
+                  className="mb-4 text-center text-3xl font-semibold text-black dark:text-white"
+                  style={{ userSelect: 'none' }}
+                >
+                  {header}
+                </h1>
               )}
+              {children}
+              {!pathname.includes('2fa') &&
+                (pathname.includes('login') || pathname.includes('register')) && (
+                  <SocialLoginRender startupConfig={startupConfig} />
+                )}
+            </div>
           </div>
         </div>
       </main>
