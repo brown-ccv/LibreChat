@@ -90,7 +90,7 @@ function AuthLayout({
                   greater reasoning capability but consume more tokens. Please select models
                   appropriate to your task to help manage your monthly max usage ($20).
                   For more information on token costs, please visit this{' '}<a
-                    href="https://librechat.ai/docs/usage-and-billing/managing-costs#model-tiers"
+                    href="https://docs.google.com/spreadsheets/d/1BY24ps-nLNp3wldrtRjvo0Edqmzyf3t97qS5flEZ-e0/edit?usp=sharing"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-medium text-green-600 underline hover:text-green-700 focus:text-green-700 dark:text-green-500 dark:hover:text-green-400 dark:focus:text-green-400"
