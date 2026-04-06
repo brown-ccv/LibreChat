@@ -218,6 +218,7 @@
   "com_auth_model_token_cost": "Model Token Cost",
   "com_auth_model_token_cost_description": "Each model is rated by its token consumption cost. Higher-tier models offer greater reasoning capability but consume more tokens. Please select models appropriate to your task to help manage your monthly max usage ($20). For more information on token costs, please visit this",
   "com_auth_model_token_cost_pricing_list": "pricing list",
+  "com_auth_model_token_monthly_spend": "monthly spend",
   "com_auth_model_token_cost_economy": "Economy",
   "com_auth_model_token_cost_standard": "Standard",
   "com_auth_model_token_cost_premium": "Premium",

@@ -49,7 +49,10 @@ function AccountSettings() {
       >
         <div className="text-token-text-secondary ml-3 mr-2 py-2 text-sm" role="note">
           <div>{user?.email ?? localize('com_nav_user')}</div>
-          <div>Monthly spend: {spendData?.spend != null ? `$${spendData.spend.toFixed(4)}` : '$0.0000'}</div>
+          <div>
+            {localize('com_auth_model_token_monthly_spend')}:{' '}
+            {spendData?.spend != null ? `$${spendData.spend.toFixed(4)}` : '$0.0000'}
+          </div>
         </div>
         <DropdownMenuSeparator />
         {startupConfig?.balance?.enabled === true && balanceQuery.data != null && (
