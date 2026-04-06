@@ -137,6 +137,9 @@ function AuthLayout({
                 (pathname.includes('login') || pathname.includes('register')) && (
                   <SocialLoginRender startupConfig={startupConfig} />
                 )}
+              <div className="mt-4 border-t border-border-light pt-4 text-center text-xs text-text-secondary">
+                <p>{localize('com_auth_model_maintained_by_ccv')}</p>
+              </div>
             </div>
           </div>
         </div>
