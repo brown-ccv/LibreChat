@@ -719,7 +719,7 @@ export const interfaceSchema = z
       share: false,
       public: false,
     },
-    deleteAccount: true,
+    deleteAccount: false,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
