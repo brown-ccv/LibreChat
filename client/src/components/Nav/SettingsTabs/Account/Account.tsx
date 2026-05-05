@@ -5,9 +5,12 @@ import Avatar from './Avatar';
 import EnableTwoFactorItem from './TwoFactorAuthentication';
 import BackupCodesItem from './BackupCodesItem';
 import { useAuthContext } from '~/hooks';
+import { useGetStartupConfig } from '~/data-provider';
 
 function Account() {
   const { user } = useAuthContext();
+  const { data: startupConfig } = useGetStartupConfig();
+  const deleteAccountEnabled = startupConfig?.interface?.deleteAccount !== false;
 
   return (
     <div className="flex flex-col gap-3 p-1 text-sm text-text-primary">
@@ -30,7 +33,7 @@ function Account() {
         </>
       )}
       <div className="pb-3">
-        <DeleteAccount />
+        <DeleteAccount disabled={!deleteAccountEnabled} />
       </div>
     </div>
   );
