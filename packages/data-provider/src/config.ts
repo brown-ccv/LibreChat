@@ -744,6 +744,7 @@ export const interfaceSchema = z
         public: z.boolean().optional(),
       })
       .optional(),
+    deleteAccount: z.boolean().optional(),
   })
   .default({
     modelSelect: true,
@@ -789,6 +790,7 @@ export const interfaceSchema = z
       share: false,
       public: false,
     },
+    deleteAccount: false,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
