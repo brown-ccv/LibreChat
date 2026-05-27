@@ -7,7 +7,6 @@ import BackupCodesItem from './BackupCodesItem';
 import { useGetStartupConfig } from '~/data-provider';
 import { useAuthContext } from '~/hooks';
 
-
 function Account() {
   const { user } = useAuthContext();
   const { data: startupConfig } = useGetStartupConfig();
