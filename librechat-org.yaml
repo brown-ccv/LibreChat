@@ -133,13 +133,13 @@ registration:
 speech:
   stt:
     azureOpenAI:
-      instanceName: yxu15-m8exsnfh-eastus2
+      instanceName: 
       apiKey: ''
       deploymentName: 'whisper'
       apiVersion: '2024-06-01'
   tts:
     azureOpenAI:
-      instanceName: yxu15-m8exsnfh-eastus2
+      instanceName: 
       apiKey: ''
       deploymentName: 'gpt-4o-mini-tts'
       apiVersion: '2025-03-01-preview'
@@ -216,7 +216,7 @@ endpoints:
   #     groups:
   #     - group: "gpt-4o"
   #       apiKey: ""
-  #       baseURL: "https://yxu15-m8exsnfh-eastus2.cognitiveservices.azure.com/openai/deployments/gpt-4o"
+  #       baseURL: ""
   #       serverless: true
   #       version: 2024-05-01-preview
   #       # Model-level configuration
@@ -226,7 +226,7 @@ endpoints:
   #     - group: "gpt-5"
   #       apiKey: ""
   #       serverless: true
-  #       baseURL: "https://yxu15-m8exsnfh-eastus2.cognitiveservices.azure.com/openai/deployments/gpt-5"
+  #       baseURL: ""
   #       version: "2025-04-01-preview"
   #       models:
   #           # Must match the deployment name of the model
@@ -238,7 +238,7 @@ endpoints:
       # Provide the key instead in each "model" block within "litellm/litellm-config.yaml"
       apiKey: ""
       # See the required changes above in "Start LiteLLM Proxy Server" step.
-      baseURL: "https://qa-litellm.ccv.brown.edu"
+      baseURL: ""
       # A "default" model to start new users with. The "fetch" will pull the rest of the available models from LiteLLM
       # More or less this is "irrelevant", you can pick any model. Just pick one you have defined in LiteLLM.
       iconURL: azureOpenAI
