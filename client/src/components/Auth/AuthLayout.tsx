@@ -140,6 +140,21 @@ function AuthLayout({
               <div className="mt-4 border-t border-border-light pt-4 text-center text-xs text-text-secondary">
                 <p>{localize('com_auth_model_maintained_by_ccv')}</p>
               </div>
+                 {startupConfig?.whatsNewURL && (
+                  <div className="mt-4 border-t border-light pt-4 text-left text-xs text-text-secondary">
+                      <p>
+                       {localize('com_auth_model_version_whats_new', { 0: startupConfig?.appVersion ?? ' ' })}{' '}
+                      <a
+                        href={startupConfig.whatsNewURL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-green-600 underline hover:text-green-700 dark:text-green-500 dark:hover:text-green-400"
+                      >
+                        {localize('com_auth_model_ccv_link')}
+                      </a>
+                      </p>
+                   </div>
+                  )} 
             </div>
           </div>
         </div>
