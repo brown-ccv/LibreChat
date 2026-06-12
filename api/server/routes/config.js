@@ -99,7 +99,7 @@ function buildSharedPayload() {
   }
 
   if (typeof process.env.WHATS_NEW_URL === 'string') {
-    payload.whatsNewURL = process.env.WHATS_NEW_URL
+    payload.whatsNewURL = process.env.WHATS_NEW_URL;
   }
 
   return payload;
