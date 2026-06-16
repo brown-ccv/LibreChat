@@ -886,6 +886,8 @@ export type TStartupConfig = {
   >;
   mcpPlaceholder?: string;
   conversationImportMaxFileSize?: number;
+  whatsNewURL?: string;
+  appVersion?: string;
 };
 
 export enum OCRStrategy {

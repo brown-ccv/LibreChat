@@ -82,6 +82,7 @@ function buildSharedPayload() {
     allowAccountDeletion:
       process.env.ALLOW_ACCOUNT_DELETION === undefined ||
       isEnabled(process.env.ALLOW_ACCOUNT_DELETION),
+    appVersion: process.env.APP_VERSION,
   };
 
   const minPasswordLength = parseInt(process.env.MIN_PASSWORD_LENGTH, 10);
@@ -95,6 +96,10 @@ function buildSharedPayload() {
 
   if (typeof process.env.CUSTOM_FOOTER === 'string') {
     payload.customFooter = process.env.CUSTOM_FOOTER;
+  }
+
+  if (typeof process.env.WHATS_NEW_URL === 'string') {
+    payload.whatsNewURL = process.env.WHATS_NEW_URL;
   }
 
   return payload;
