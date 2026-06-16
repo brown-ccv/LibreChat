@@ -1,14 +1,7 @@
-name: Docker Dev Images Build
+name: Brown University -Docker Compose Build Latest Patched Image Tag (Manual Dispatch)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'api/**'
-      - 'client/**'
-      - 'packages/**'
 
 jobs:
   build:
@@ -18,15 +11,20 @@ jobs:
         include:
           - target: api-build
             file: Dockerfile.multi
-            image_name: librechat-dev-api
+            image_name: librechat-api
           - target: node
             file: Dockerfile
-            image_name: librechat-dev
+            image_name: librechat
 
     steps:
-      # Check out the repository
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Fetch tags and set the latest patched tag
+        run: |
+          git fetch --tags --force
+          # This command finds the latest tag that ends with "-brown-patch"
+          echo "LATEST_TAG=$(git tag --list '*-brown-patch' --sort=-v:refname | head -n 1)" >> $GITHUB_ENV
 
       # Set up QEMU
       - name: Set up QEMU
@@ -44,13 +42,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Login to Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       # Prepare the environment
       - name: Prepare environment
         run: |
@@ -64,9 +55,7 @@ jobs:
           file: ${{ matrix.file }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ env.LATEST_TAG }}
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:latest
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.target }}

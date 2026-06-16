@@ -14,7 +14,6 @@ jobs:
   detect-unused-packages:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       pull-requests: write
 
     steps:
@@ -273,7 +272,7 @@ jobs:
 
           gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" \
             -f body="$COMMENT_BODY" \
-            -H "Authorization: token $GITHUB_TOKEN"
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -1,15 +1,12 @@
-name: Docker Dev Images Build
+name: Build Image Tag (Manual Dispatch) - Testing
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'api/**'
-      - 'client/**'
-      - 'packages/**'
-
+    inputs:
+      tag_name:
+        description: 'Tag name to build the image from'
+        required: true
+        type: string
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,15 +15,23 @@ jobs:
         include:
           - target: api-build
             file: Dockerfile.multi
-            image_name: librechat-dev-api
+            image_name: librechat-api
           - target: node
             file: Dockerfile
-            image_name: librechat-dev
+            image_name: librechat
 
     steps:
-      # Check out the repository
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate and set tag
+        run: |
+          git fetch --tags --force
+          if ! git tag --list | grep -qx "${{ inputs.tag_name }}"; then
+            echo "Error: Tag '${{ inputs.tag_name }}' does not exist in this repository."
+            exit 1
+          fi
+          echo "LATEST_TAG=${{ inputs.tag_name }}" >> $GITHUB_ENV
 
       # Set up QEMU
       - name: Set up QEMU
@@ -44,13 +49,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Login to Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
       # Prepare the environment
       - name: Prepare environment
         run: |
@@ -64,9 +62,6 @@ jobs:
           file: ${{ matrix.file }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.image_name }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ env.LATEST_TAG }}
           platforms: linux/amd64,linux/arm64
           target: ${{ matrix.target }}
