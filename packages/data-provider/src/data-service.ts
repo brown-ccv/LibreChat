@@ -1287,3 +1287,8 @@ export interface ActiveJobsResponse {
 export const getActiveJobs = (): Promise<ActiveJobsResponse> => {
   return request.get(endpoints.activeJobs());
 };
+
+/* User Spend */
+export function getUserSpend(): Promise<{ spend: number }> {
+  return request.get(endpoints.userSpend());
+}

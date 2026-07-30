@@ -80,6 +80,8 @@ export enum QueryKeys {
   skillStates = 'skillStates',
   /* General user favorites */
   favorites = 'favorites',
+
+  userSpend = 'userSpend',
 }
 
 // Dynamic query keys that require parameters

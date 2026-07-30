@@ -57,6 +57,7 @@ export async function loadDefaultInterface({
     marketplace: interfaceConfig?.marketplace,
     remoteAgents: interfaceConfig?.remoteAgents,
     skills: interfaceConfig?.skills,
+    deleteAccount: interfaceConfig?.deleteAccount,
   });
 
   return loadedInterface;

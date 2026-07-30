@@ -989,6 +989,7 @@ export const interfaceSchema = z
         }),
       ])
       .optional(),
+    deleteAccount: z.boolean().optional(),
   })
   .default({
     modelSelect: true,
@@ -1043,6 +1044,7 @@ export const interfaceSchema = z
       public: false,
       defaultActiveOnShare: false,
     },
+    deleteAccount: false,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
