@@ -1164,12 +1164,17 @@ export type TStartupConfig = {
   >;
   mcpPlaceholder?: string;
   conversationImportMaxFileSize?: number;
+
   buildInfo?: {
     commit?: string | null;
     commitShort?: string | null;
     branch?: string | null;
     buildDate?: string | null;
   };
+
+  whatsNewURL?: string;
+  appVersion?: string;
+
 };
 
 export enum OCRStrategy {
