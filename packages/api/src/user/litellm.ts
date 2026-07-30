@@ -4,7 +4,7 @@ import type { ServerRequest } from '~/types';
 export async function getUserSpend(req: ServerRequest, res: Response) {
   const baseUrl = process.env.LITELLM_BASE_URL;
   const key = process.env.LITELLM_API_KEY;
-  const userId = req.user?.id;
+  const userId = req.user!.id;
 
   if (!baseUrl || !key) {
     return res.status(503).json({ message: 'LiteLLM not configured' });
