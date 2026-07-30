@@ -1174,7 +1174,6 @@ export type TStartupConfig = {
 
   whatsNewURL?: string;
   appVersion?: string;
-
 };
 
 export enum OCRStrategy {

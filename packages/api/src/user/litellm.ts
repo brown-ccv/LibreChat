@@ -21,4 +21,5 @@ export async function getUserSpend(req: ServerRequest, res: Response) {
 
   const data = await response.json();
   return res.json({ spend: data.spend ?? 0 });
+
 }

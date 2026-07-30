@@ -100,7 +100,7 @@ function buildPreLoginPayload() {
   if (ldap) {
     payload.ldap = ldap;
   }
-  
+
   if (typeof process.env.WHATS_NEW_URL === 'string') {
     payload.whatsNewURL = process.env.WHATS_NEW_URL;
   }
@@ -167,7 +167,6 @@ function buildBuildInfoPayload(interfaceConfig) {
     branch: info.branch,
     buildDate: info.buildDate,
   };
-
 }
 
 function buildWebSearchConfig(appConfig) {
