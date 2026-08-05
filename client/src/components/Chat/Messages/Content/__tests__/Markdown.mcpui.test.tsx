@@ -10,6 +10,7 @@ import { UI_RESOURCE_MARKER } from '~/components/MCPUIResource/plugin';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import MarkdownLite from '../MarkdownLite';
 import { useLocalize } from '~/hooks';
+import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
 import Markdown from '../Markdown';
 
 // Mocks for hooks used by MCPUIResource when rendered inside Markdown.
@@ -29,6 +30,9 @@ jest.mock('@mcp-ui/client', () => ({
     <div data-testid="ui-resource-renderer" data-resource-uri={resource?.uri} />
   ),
 }));
+jest.mock('~/hooks/Messages/useConversationUIResources', () => ({
+  useConversationUIResources: jest.fn(),
+}));
 
 const mockUseMessageContext = useMessageContext as jest.MockedFunction<typeof useMessageContext>;
 const mockUseMessagesConversation = useOptionalMessagesConversation as jest.MockedFunction<
@@ -41,6 +45,9 @@ const mockUseGetMessagesByConvoId = useGetMessagesByConvoId as jest.MockedFuncti
   typeof useGetMessagesByConvoId
 >;
 const mockUseLocalize = useLocalize as jest.MockedFunction<typeof useLocalize>;
+const mockUseConversationUIResources = useConversationUIResources as jest.MockedFunction<
+  typeof useConversationUIResources
+>;
 
 describe('Markdown with MCP UI markers (resource IDs)', () => {
   let currentTestMessages: any[] = [];
@@ -59,6 +66,25 @@ describe('Markdown with MCP UI markers (resource IDs)', () => {
       getMessages: () => currentTestMessages,
     } as any);
     mockUseLocalize.mockReturnValue(((key: string) => key) as any);
+    mockUseConversationUIResources.mockImplementation(() => {
+      const resourceMap = new Map();
+
+      currentTestMessages.forEach((message) => {
+        message.attachments?.forEach((attachment: any) => {
+          if (attachment?.type !== 'ui_resources') {
+            return;
+          }
+
+          attachment.ui_resources?.forEach((resource: any) => {
+            if (resource?.resourceId) {
+              resourceMap.set(resource.resourceId, resource);
+            }
+          });
+        });
+      });
+
+      return resourceMap;
+    });
   });
 
   // TODO: No idea why this test is failing. It works fine in the app, but fails in the test harness. The error is swallowed by MarkdownErrorBoundary, which falls back to unprocessed markers. Need to investigate further.
