@@ -236,7 +236,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         {description &&
           (descriptionIsHTML ? (
             <div
-              className="animate-fadeIn mt-4 flex max-w-md whitespace-pre-line items-center justify-center gap-2 text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
+              className="animate-fadeIn mt-4 flex max-w-md items-center justify-center gap-2 whitespace-pre-line text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
               dangerouslySetInnerHTML={{ __html: sanitizeDescription(description) }}
             />
           ) : (
