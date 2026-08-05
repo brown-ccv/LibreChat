@@ -95,8 +95,15 @@ function EndpointMenuContent({
   endpointIndex: number;
 }) {
   const localize = useLocalize();
-  const { agentsMap, assistantsMap, modelSpecs, selectedValues, endpointSearchValues } =
-    useModelSelectorContext();
+  const {
+    agentsMap,
+    assistantsMap,
+    modelSpecs,
+    selectedValues,
+    endpointSearchValues,
+    modelSpecsPrioritize,
+  } = useModelSelectorContext();
+
   const { modelSpec: selectedSpec } = selectedValues;
   const searchValue = endpointSearchValues[endpoint.value] || '';
 
@@ -133,6 +140,8 @@ function EndpointMenuContent({
     endpoint.showMarketplace === true && marketplaceSearchMatches(searchValue, localize);
   const hasSelectableRows = endpointSpecs.length > 0 || renderedModels.length > 0;
 
+  const shouldRenderModels = !modelSpecsPrioritize || endpointSpecs.length === 0;
+
   return (
     <>
       {showMarketplace && <MarketplaceItem label={localize('com_agents_marketplace')} />}
@@ -140,10 +149,11 @@ function EndpointMenuContent({
       {endpointSpecs.map((spec: TModelSpec) => (
         <ModelSpecItem key={spec.name} spec={spec} isSelected={selectedSpec === spec.name} />
       ))}
-      {filteredModels
-        ? renderEndpointModels(endpoint, endpoint.models || [], filteredModels, endpointIndex)
-        : endpoint.models &&
-          renderEndpointModels(endpoint, endpoint.models, undefined, endpointIndex)}
+      {shouldRenderModels &&
+        (filteredModels
+          ? renderEndpointModels(endpoint, endpoint.models || [], filteredModels, endpointIndex)
+          : endpoint.models &&
+            renderEndpointModels(endpoint, endpoint.models, undefined, endpointIndex))}
     </>
   );
 }

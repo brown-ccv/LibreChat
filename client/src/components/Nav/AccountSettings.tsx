@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { ArchivedChatsModal } from '~/components/Nav/SettingsTabs/General/ArchivedChatsModal';
 import { MyFilesModal } from '~/components/Chat/Input/Files/MyFilesModal';
-import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
+import { useGetStartupConfig, useGetUserBalance, useGetUserSpend } from '~/data-provider';
 import { useAuthContext } from '~/hooks/AuthContext';
 import { useLocalize } from '~/hooks';
 import Settings from './Settings';
@@ -104,6 +104,7 @@ function AccountSettings({ collapsed = false }: { collapsed?: boolean }) {
   const setShowShortcutsDialog = useSetRecoilState(store.showShortcutsDialog);
   const [showArchived, setShowArchived] = useState(false);
   const accountSettingsButtonRef = useRef<HTMLButtonElement>(null);
+  const { data: spendData } = useGetUserSpend();
 
   return (
     <Menu.MenuProvider placement={collapsed ? 'right-end' : undefined}>
@@ -142,7 +143,11 @@ function AccountSettings({ collapsed = false }: { collapsed?: boolean }) {
         }}
       >
         <div className="text-token-text-secondary ml-3 mr-2 py-2 text-sm" role="note">
-          {user?.email ?? localize('com_nav_user')}
+          <div>{user?.email ?? localize('com_nav_user')}</div>
+          <div>
+            {localize('com_auth_model_token_monthly_cost')}:{' '}
+            {spendData?.spend != null ? `$${spendData.spend.toFixed(4)}` : '$0.0000'}
+          </div>
         </div>
         <DropdownMenuSeparator />
         {startupConfig?.balance?.enabled === true && balanceQuery.data != null && (

@@ -103,6 +103,10 @@ function buildPreLoginPayload() {
     payload.ldap = ldap;
   }
 
+  if (typeof process.env.WHATS_NEW_URL === 'string') {
+    payload.whatsNewURL = process.env.WHATS_NEW_URL;
+  }
+
   return payload;
 }
 
@@ -145,6 +149,7 @@ function buildPostLoginPayload() {
     allowAccountDeletion:
       process.env.ALLOW_ACCOUNT_DELETION === undefined ||
       isEnabled(process.env.ALLOW_ACCOUNT_DELETION),
+    appVersion: process.env.APP_VERSION,
   };
 
   return payload;

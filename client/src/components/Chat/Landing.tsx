@@ -11,7 +11,7 @@ import {
   CONFIG_HTML_MEDIA_ATTR,
 } from '~/utils';
 import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
-import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
+import { useGetEndpointsQuery, useGetStartupConfig, useGetUserSpend } from '~/data-provider';
 import ConvoIcon from '~/components/Endpoints/ConvoIcon';
 import { useLocalize, useAuthContext } from '~/hooks';
 
@@ -42,6 +42,7 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const { data: endpointsConfig } = useGetEndpointsQuery();
   const { user } = useAuthContext();
   const localize = useLocalize();
+  const { data: spendData } = useGetUserSpend();
 
   const [textHasMultipleLines, setTextHasMultipleLines] = useState(false);
   const [lineCount, setLineCount] = useState(1);
@@ -76,8 +77,11 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const brandedSpecLabel = modelSpec?.showOnLanding ? modelSpec.label : '';
   const brandedSpecDescription = (modelSpec?.showOnLanding && modelSpec.description) || '';
   const name = entity?.name ?? brandedSpecLabel;
-  const description =
+  const rawDescription =
     (entity?.description || brandedSpecDescription || conversation?.greeting) ?? '';
+  const description = rawDescription.includes('{{spend}}')
+    ? rawDescription.replace('{{spend}}', spendData?.spend?.toFixed(4) ?? '...')
+    : rawDescription;
   const descriptionIsHTML = description.trim().startsWith('<');
 
   const sanitizeDescription = useMemo(
@@ -88,6 +92,12 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       }),
     [],
   );
+  // const name = entity?.name ?? '';
+  // const description = (entity?.description || conversation?.greeting) ?? '';
+  // const rawDescription = (entity?.description || conversation?.greeting) ?? '';
+  // const description = rawDescription.includes('{{spend}}')
+  //   ? rawDescription.replace('{{spend}}', spendData?.spend?.toFixed(4) ?? '...')
+  //   : rawDescription;
 
   const getGreeting = useCallback(() => {
     if (typeof startupConfig?.interface?.customWelcome === 'string') {
@@ -226,11 +236,11 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
         {description &&
           (descriptionIsHTML ? (
             <div
-              className="animate-fadeIn mt-4 flex max-w-md items-center justify-center gap-2 text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
+              className="animate-fadeIn mt-4 flex max-w-md whitespace-pre-line items-center justify-center gap-2 text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
               dangerouslySetInnerHTML={{ __html: sanitizeDescription(description) }}
             />
           ) : (
-            <div className="animate-fadeIn mt-4 max-w-md text-center text-sm font-normal text-text-primary">
+            <div className="animate-fadeIn mt-4 max-w-md whitespace-pre-line text-center text-sm font-normal text-text-primary">
               {description}
             </div>
           ))}

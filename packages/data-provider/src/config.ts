@@ -1256,6 +1256,7 @@ export const interfaceSchema = z
         }),
       ])
       .optional(),
+    deleteAccount: z.boolean().optional(),
   })
   .default({
     modelSelect: true,
@@ -1318,6 +1319,7 @@ export const interfaceSchema = z
       public: true,
       snapshotFiles: true,
     },
+    deleteAccount: false,
   });
 
 export type TInterfaceConfig = z.infer<typeof interfaceSchema>;
@@ -1443,12 +1445,16 @@ export type TStartupConfig = {
   >;
   mcpPlaceholder?: string;
   conversationImportMaxFileSize?: number;
+
   buildInfo?: {
     commit?: string | null;
     commitShort?: string | null;
     branch?: string | null;
     buildDate?: string | null;
   };
+
+  whatsNewURL?: string;
+  appVersion?: string;
 };
 
 export type TSharedLinkStartupInterface = Pick<
