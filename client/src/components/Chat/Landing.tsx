@@ -10,8 +10,8 @@ import {
   CONFIG_HTML_MEDIA_TAGS,
   CONFIG_HTML_MEDIA_ATTR,
 } from '~/utils';
-import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
 import { useGetEndpointsQuery, useGetStartupConfig, useGetUserSpend } from '~/data-provider';
+import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
 import ConvoIcon from '~/components/Endpoints/ConvoIcon';
 import { useLocalize, useAuthContext } from '~/hooks';
 
