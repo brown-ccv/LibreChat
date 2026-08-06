@@ -18,9 +18,11 @@ import {
   Text,
   SkillCall,
   ReadFileCall,
+  FileAuthoringCall,
   BashCall,
   SubagentCall,
 } from './Parts';
+import { isBashProgrammaticToolCall } from './routing';
 import { ErrorMessage } from './MessageContent';
 import RetrievalCall from './RetrievalCall';
 import { getCachedPreview } from '~/utils';
@@ -30,7 +32,6 @@ import Container from './Container';
 import WebSearch from './WebSearch';
 import ToolCall from './ToolCall';
 import Image from './Image';
-import { isBashProgrammaticToolCall } from './routing';
 
 type PartProps = {
   part?: TMessageContentParts;
@@ -40,6 +41,7 @@ type PartProps = {
   isCreatedByUser: boolean;
   attachments?: TAttachment[];
   hideAttachments?: boolean;
+  onToolExpand?: () => void;
 };
 
 const Part = memo(function Part({
@@ -50,6 +52,7 @@ const Part = memo(function Part({
   showCursor,
   isCreatedByUser,
   hideAttachments,
+  onToolExpand,
 }: PartProps) {
   if (!part) {
     return null;
@@ -143,6 +146,7 @@ const Part = memo(function Part({
           attachments={attachments}
           commandField="code"
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (
@@ -159,6 +163,7 @@ const Part = memo(function Part({
           initialProgress={toolCall.progress ?? 0.1}
           args={toolCall.args}
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (
@@ -187,6 +192,7 @@ const Part = memo(function Part({
           isSubmitting={isSubmitting}
           attachments={attachments}
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (isToolCall && toolCall.name === Constants.SUBAGENT) {
@@ -222,6 +228,20 @@ const Part = memo(function Part({
           isSubmitting={isSubmitting}
           attachments={attachments}
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
+        />
+      );
+    } else if (isToolCall && (toolCall.name === 'create_file' || toolCall.name === 'edit_file')) {
+      return (
+        <FileAuthoringCall
+          toolName={toolCall.name}
+          args={toolCall.args}
+          output={toolCall.output ?? ''}
+          initialProgress={toolCall.progress ?? 0.1}
+          isSubmitting={isSubmitting}
+          attachments={attachments}
+          hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (isToolCall && toolCall.name === Tools.bash_tool) {
@@ -233,6 +253,7 @@ const Part = memo(function Part({
           isSubmitting={isSubmitting}
           attachments={attachments}
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (isToolCall && toolCall.name === Tools.web_search) {
@@ -243,6 +264,7 @@ const Part = memo(function Part({
           isSubmitting={isSubmitting}
           attachments={attachments}
           isLast={isLast}
+          onExpand={onToolExpand}
         />
       );
     } else if (isToolCall && (toolCall.name === 'file_search' || toolCall.name === 'retrieval')) {
@@ -252,6 +274,7 @@ const Part = memo(function Part({
           isSubmitting={isSubmitting}
           output={toolCall.output ?? undefined}
           attachments={attachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (isToolCall && toolCall.name?.startsWith(Constants.LC_TRANSFER_TO_)) {
@@ -268,6 +291,7 @@ const Part = memo(function Part({
           auth={toolCall.auth}
           isLast={isLast}
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (toolCall.type === ToolCallTypes.CODE_INTERPRETER) {
@@ -277,6 +301,7 @@ const Part = memo(function Part({
           initialProgress={toolCall.progress ?? 0.1}
           code={code_interpreter.input}
           outputs={code_interpreter.outputs ?? []}
+          onExpand={onToolExpand}
         />
       );
     } else if (
@@ -289,6 +314,7 @@ const Part = memo(function Part({
           isSubmitting={isSubmitting}
           output={(toolCall as { output?: string }).output}
           attachments={attachments}
+          onExpand={onToolExpand}
         />
       );
     } else if (
@@ -326,6 +352,7 @@ const Part = memo(function Part({
           output={toolCall.function.output}
           isLast={isLast}
           hideAttachments={hideAttachments}
+          onExpand={onToolExpand}
         />
       );
     }

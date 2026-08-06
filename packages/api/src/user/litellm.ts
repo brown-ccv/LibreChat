@@ -1,7 +1,7 @@
 import type { Response } from 'express';
 import type { ServerRequest } from '~/types';
 
-export async function getUserSpend(req: ServerRequest, res: Response) {
+export async function getUserSpend(req: ServerRequest, res: Response): Promise<Response> {
   const baseUrl = process.env.LITELLM_BASE_URL;
   const key = process.env.LITELLM_API_KEY;
   const userId = req.user!.id;
