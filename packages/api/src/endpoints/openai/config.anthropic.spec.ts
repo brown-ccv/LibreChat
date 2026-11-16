@@ -1,6 +1,7 @@
 import { AnthropicEffort } from 'librechat-data-provider';
 import { FINE_GRAINED_TOOL_STREAMING_BETA } from '../anthropic/helpers';
 import { getOpenAIConfig } from './config';
+import { getOpenAIConfig } from './config';
 
 describe('getOpenAIConfig - Anthropic Compatibility', () => {
   describe('Anthropic via LiteLLM', () => {

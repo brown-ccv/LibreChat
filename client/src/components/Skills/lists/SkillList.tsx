@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
+import { Skeleton } from '@librechat/client';
 import { useSearchParams } from 'react-router-dom';
 import type { TSkillSummary } from 'librechat-data-provider';
 import SkillListItem from './SkillListItem';

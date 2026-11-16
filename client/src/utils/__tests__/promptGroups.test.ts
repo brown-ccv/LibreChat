@@ -2,6 +2,7 @@ import { QueryClient, QueryObserver } from '@tanstack/react-query';
 import { InfiniteCollections, QueryKeys } from 'librechat-data-provider';
 import type { PromptGroupListResponse, TPromptGroup } from 'librechat-data-provider';
 import type { InfiniteData } from '@tanstack/react-query';
+import type { InfiniteData } from '@tanstack/react-query';
 import {
   addGroupToAll,
   addPromptGroup,

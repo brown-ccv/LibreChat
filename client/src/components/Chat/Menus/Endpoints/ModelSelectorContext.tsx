@@ -33,6 +33,7 @@ type ModelSelectorContextType = {
   agentsMap: t.TAgentsMap | undefined;
   assistantsMap: t.TAssistantsMap | undefined;
   endpointsConfig: t.TEndpointsConfig;
+  modelSpecsPrioritize: boolean;
 
   // Functions
   endpointRequiresUserKey: (endpoint: string) => boolean;
@@ -59,6 +60,8 @@ interface ModelSelectorProviderProps {
   startupConfig: t.TStartupConfig | undefined;
 }
 
+// add to context value and type
+
 export function ModelSelectorProvider({ children, startupConfig }: ModelSelectorProviderProps) {
   const agentsMap = useAgentsMapContext();
   const assistantsMap = useAssistantsMapContext();
@@ -67,6 +70,7 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
     useModelSelectorChatContext();
   const localize = useLocalize();
   const { announcePolite } = useLiveAnnouncer();
+  const modelSpecsPrioritize = startupConfig?.modelSpecs?.prioritize === true;
   const modelSpecs = useMemo(() => {
     /** Labels are normalized at the startup-config query boundary. */
     const specs = startupConfig?.modelSpecs?.list ?? [];
@@ -275,6 +279,7 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
       assistantsMap,
       mappedEndpoints,
       endpointsConfig,
+      modelSpecsPrioritize,
       handleSelectSpec,
       handleSelectModel,
       setSelectedValues,
@@ -294,6 +299,7 @@ export function ModelSelectorProvider({ children, startupConfig }: ModelSelector
       assistantsMap,
       mappedEndpoints,
       endpointsConfig,
+      modelSpecsPrioritize,
       handleSelectSpec,
       handleSelectModel,
       setSelectedValues,

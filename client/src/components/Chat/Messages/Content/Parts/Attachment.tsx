@@ -15,8 +15,10 @@ import {
   renderAttachmentKey,
 } from './attachmentTypes';
 import { useLocalize, useAttachmentPreviewSync, useExpandCollapse } from '~/hooks';
+import { useLocalize, useAttachmentPreviewSync, useExpandCollapse } from '~/hooks';
 import FileContainer from '~/components/Chat/Input/Files/FileContainer';
 import { fileToArtifact, TOOL_ARTIFACT_TYPES } from '~/utils/artifacts';
+import FilePreview from '~/components/Chat/Input/Files/FilePreview';
 import Image from '~/components/Chat/Messages/Content/Image';
 import { ROW_GLYPH_SLOT, TOOL_ROW_CLASSES } from '../rows';
 import ToolMermaidArtifact from './ToolMermaidArtifact';

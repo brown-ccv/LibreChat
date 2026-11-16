@@ -4,12 +4,21 @@ import { HatGlasses } from 'lucide-react';
 import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
-import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
+
 import Description, { isHtmlDescription } from '~/components/ui/Description';
-import { useGetEndpointsQuery, useGetStartupConfig } from '~/data-provider';
-import { getIconEndpoint, getEntity, getModelSpec } from '~/utils';
 import { useLocalize, useAuthContext, useGreeting } from '~/hooks';
 import AgentContact from '~/components/Agents/AgentContact';
+
+import {
+  getIconEndpoint,
+  getEntity,
+  getModelSpec,
+  createConfigHtmlSanitizer,
+  CONFIG_HTML_MEDIA_TAGS,
+  CONFIG_HTML_MEDIA_ATTR,
+} from '~/utils';
+import { useGetEndpointsQuery, useGetStartupConfig, useGetUserSpend } from '~/data-provider';
+import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
 import ConvoIcon from '~/components/Endpoints/ConvoIcon';
 import temporaryStore from '~/store/temporary';
 
@@ -47,6 +56,9 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const localize = useLocalize();
   const isTemporary = useRecoilValue(temporaryStore.isTemporary);
 
+  const { data: spendData } = useGetUserSpend();
+
+
   const [textHasMultipleLines, setTextHasMultipleLines] = useState(false);
   const [lineCount, setLineCount] = useState(1);
   const [contentHeight, setContentHeight] = useState(0);
@@ -79,11 +91,15 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
 
   const brandedSpecLabel = modelSpec?.showOnLanding ? modelSpec.label : '';
   const brandedSpecDescription = (modelSpec?.showOnLanding && modelSpec.description) || '';
+
   const name = isTemporary ? '' : (entity?.name ?? brandedSpecLabel);
-  const description = isTemporary
+  const rawDescription = isTemporary
     ? localize('com_ui_temporary_description')
     : ((entity?.description || brandedSpecDescription || conversation?.greeting) ?? '');
-  const descriptionIsHTML = isHtmlDescription(description);
+  const description = rawDescription.includes('{{spend}}')
+    ? rawDescription.replace('{{spend}}', spendData?.spend?.toFixed(4) ?? '...')
+    : rawDescription;
+  const descriptionIsHTML = description.trim().startsWith('<');
   const selectedAgent =
     isAgent && conversation?.agent_id != null ? agentsMap?.[conversation.agent_id] : undefined;
 
@@ -91,6 +107,22 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
     typeof startupConfig?.interface?.customWelcome === 'string'
       ? startupConfig.interface.customWelcome
       : undefined;
+
+  const sanitizeDescription = useMemo(
+    () =>
+      createConfigHtmlSanitizer({
+        allowedTags: CONFIG_HTML_MEDIA_TAGS,
+        allowedAttr: CONFIG_HTML_MEDIA_ATTR,
+      }),
+    [],
+  );
+  // const name = entity?.name ?? '';
+  // const description = (entity?.description || conversation?.greeting) ?? '';
+  // const rawDescription = (entity?.description || conversation?.greeting) ?? '';
+  // const description = rawDescription.includes('{{spend}}')
+  //   ? rawDescription.replace('{{spend}}', spendData?.spend?.toFixed(4) ?? '...')
+  //   : rawDescription;
+
 
   const scheduledGreeting = useGreeting(user?.name);
 
@@ -216,6 +248,19 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
             className="animate-fadeIn mt-2 max-w-md justify-center text-center text-sm"
           />
         )}
+
+        {/* {description &&
+          (descriptionIsHTML ? (
+            <div
+              className="animate-fadeIn mt-4 flex max-w-md items-center justify-center gap-2 whitespace-pre-line text-center text-sm font-normal text-text-primary [&_img]:inline-block [&_img]:h-4 [&_img]:w-4"
+              dangerouslySetInnerHTML={{ __html: sanitizeDescription(description) }}
+            />
+          ) : (
+            <div className="animate-fadeIn mt-4 max-w-md whitespace-pre-line text-center text-sm font-normal text-text-primary">
+              {description}
+            </div>
+          ))} */}
+
       </div>
     </div>
   );

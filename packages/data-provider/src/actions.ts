@@ -4,6 +4,7 @@ import _axios from 'axios';
 import crypto from 'crypto';
 import { load } from 'js-yaml';
 import type { OpenAPIV3 } from 'openapi-types';
+import type { OpenAPIV3 } from 'openapi-types';
 import type { ActionMetadata, ActionMetadataRuntime } from './types/agents';
 import type { FunctionTool, Schema, Reference } from './types/tools';
 import { AuthTypeEnum, AuthorizationTypeEnum } from './types/agents';

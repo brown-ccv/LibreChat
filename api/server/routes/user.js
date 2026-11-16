@@ -17,6 +17,8 @@ const {
   requireJwtAuth,
 } = require('~/server/middleware');
 
+const { getUserSpend } = require('@librechat/api');
+
 const settings = require('./settings');
 const { updateUserStatefulCodeEnvironment } = require('~/models');
 
@@ -35,5 +37,6 @@ router.post('/plugins', requireJwtAuth, updateUserPluginsController);
 router.delete('/delete', requireJwtAuth, canDeleteAccount, configMiddleware, deleteUserController);
 router.post('/verify', verifyEmailSubmissionLimiter, verifyEmailController);
 router.post('/verify/resend', verifyEmailLimiter, resendVerificationController);
+router.get('/spend', requireJwtAuth, getUserSpend);
 
 module.exports = router;

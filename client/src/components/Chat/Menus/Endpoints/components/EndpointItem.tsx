@@ -96,8 +96,15 @@ function EndpointMenuContent({
   endpointIndex: number;
 }) {
   const localize = useLocalize();
-  const { agentsMap, assistantsMap, modelSpecs, selectedValues, endpointSearchValues } =
-    useModelSelectorContext();
+  const {
+    agentsMap,
+    assistantsMap,
+    modelSpecs,
+    selectedValues,
+    endpointSearchValues,
+    modelSpecsPrioritize,
+  } = useModelSelectorContext();
+
   const { modelSpec: selectedSpec } = selectedValues;
   const searchValue = endpointSearchValues[endpoint.value] || '';
 
@@ -143,6 +150,9 @@ function EndpointMenuContent({
   const precedingOptionCount = (showMarketplace ? 1 : 0) + endpointSpecs.length;
   const isVirtualized = renderedModels.length > VIRTUALIZE_THRESHOLD;
   const listboxSetSize = isVirtualized ? precedingOptionCount + renderedModels.length : undefined;
+
+  const shouldRenderModels = !modelSpecsPrioritize || endpointSpecs.length === 0;
+
 
   return (
     <>

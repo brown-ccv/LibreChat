@@ -1,5 +1,6 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
+import { RecoilRoot } from 'recoil';
 import { render, screen } from '@testing-library/react';
 import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
 import { UI_RESOURCE_MARKER } from '~/components/MCPUIResource/plugin';

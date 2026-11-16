@@ -5,6 +5,7 @@ import { PermissionTypes, Permissions, isAssistantsEndpoint } from 'librechat-da
 import { showSkillsPopoverFamily } from '~/components/Chat/Input/skillsState';
 import { useGetLatestMessage } from '~/hooks/Messages/useLatestMessage';
 import useAgentCapabilities from '~/hooks/Agents/useAgentCapabilities';
+import { useLatestMessage } from '~/hooks/Messages/useLatestMessage';
 import useGetAgentsConfig from '~/hooks/Agents/useGetAgentsConfig';
 import useHasAccess from '~/hooks/Roles/useHasAccess';
 import store from '~/store';
