@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { FileConfigInput } from 'librechat-data-provider';
 import type { ReactNode } from 'react';
-import type { ReactNode } from 'react';
 import UploadSkillDialog from '../UploadSkillDialog';
 
 const mockMutate = jest.fn();

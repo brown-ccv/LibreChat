@@ -1,5 +1,4 @@
 import React from 'react';
-import { FileSources } from 'librechat-data-provider';
 import { render, screen, fireEvent } from '@testing-library/react';
 import {
   FileSources,
@@ -10,7 +9,6 @@ import {
 import type { TFile } from 'librechat-data-provider';
 import type { ExtendedFile } from '~/common';
 import { columns } from '../PanelColumns';
-import DataTable from '../PanelTable';
 import DataTable from '../PanelTable';
 
 const mockShowToast = jest.fn();
