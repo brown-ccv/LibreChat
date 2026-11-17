@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import { Copy, Check } from 'lucide';
 import rehypeKatex from 'rehype-katex';
 import supersub from 'remark-supersub';
 import ReactMarkdown from 'react-markdown';

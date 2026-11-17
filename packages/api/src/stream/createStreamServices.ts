@@ -8,7 +8,6 @@ import { RedisJobStore } from './implementations/RedisJobStore';
 import { createIoRedisSubscriber } from '~/cache/redisUtils';
 import { ioredisClient } from '~/cache/redisClients';
 import { cacheConfig } from '~/cache/cacheConfig';
-import { cacheConfig } from '~/cache/cacheConfig';
 
 /**
  * Configuration for stream services (optional overrides)

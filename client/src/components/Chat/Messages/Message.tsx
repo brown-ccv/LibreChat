@@ -1,6 +1,5 @@
 import React from 'react';
 import type { TMessageProps } from '~/common';
-import type { TMessageProps } from '~/common';
 import { useMessageProcess, useMemoizedChatContext } from '~/hooks';
 import { areMessageRowPropsEqual } from '~/utils';
 import MessageRender from './ui/MessageRender';

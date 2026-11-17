@@ -5,7 +5,6 @@ import {
 } from 'librechat-data-provider';
 import type { TCustomConfig } from 'librechat-data-provider';
 import logger from '~/config/winston';
-import logger from '~/config/winston';
 
 /**
  * Sets up Model Specs from the config (`librechat.yaml`) file.

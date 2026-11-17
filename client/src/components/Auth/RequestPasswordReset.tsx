@@ -6,7 +6,6 @@ import { Spinner, Button, Alert, Input } from '@librechat/client';
 import { useRequestPasswordResetMutation } from 'librechat-data-provider/react-query';
 import type { TRequestPasswordReset, TRequestPasswordResetResponse } from 'librechat-data-provider';
 import type { FC } from 'react';
-import type { FC } from 'react';
 import type { TLoginLayoutContext } from '~/common';
 import { useLocalize } from '~/hooks';
 

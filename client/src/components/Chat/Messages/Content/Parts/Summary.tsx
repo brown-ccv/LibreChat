@@ -5,7 +5,6 @@ import { ScrollText, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button, MorphIcon, TooltipAnchor } from '@librechat/client';
 import type { SummaryContentPart } from 'librechat-data-provider';
 import type { MouseEvent, FocusEvent } from 'react';
-import type { MouseEvent, FocusEvent } from 'react';
 import { fontSizeAtom } from '~/store/fontSize';
 import { useMessageContext } from '~/Providers';
 import { useLocalize } from '~/hooks';

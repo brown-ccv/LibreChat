@@ -1,7 +1,6 @@
 import React, { memo, useRef, useMemo, useEffect } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { ChevronDown } from 'lucide-react';
-import { TooltipAnchor } from '@librechat/client';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import { TooltipAnchor, composerControlClasses } from '@librechat/client';
 import MCPServerMenuItem from '~/components/MCP/MCPServerMenuItem';

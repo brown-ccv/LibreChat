@@ -36,7 +36,7 @@ export const JOB_STORE_V2_REQUIRED_METHODS = [
   'claimFirstSubscriber',
   'detachSubscriber',
   'hasActiveSubscriber',
-] as const satisfies ReadonlyArray<keyof IJobStoreV2>;
+] as const;
 
 export type JobStoreV2RequiredMethod = (typeof JOB_STORE_V2_REQUIRED_METHODS)[number];
 

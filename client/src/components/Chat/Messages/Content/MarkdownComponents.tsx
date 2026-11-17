@@ -11,7 +11,6 @@ import {
 import Mermaid, { MermaidErrorBoundary } from '~/components/Messages/Content/Mermaid';
 import { useCodeBlockContext, useMediaContext } from '~/Providers';
 import CodeBlock from '~/components/Messages/Content/CodeBlock';
-import { handleDoubleClick, triggerDownload } from '~/utils';
 import useHasAccess from '~/hooks/Roles/useHasAccess';
 import { useFileDownload } from '~/data-provider';
 import { useLocalize } from '~/hooks';

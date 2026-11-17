@@ -73,8 +73,7 @@ function AuthLayout({
       </div>
 
       <main className="flex flex-grow items-center justify-center">
-
-        <div className="w-authPageWidth overflow-hidden bg-surface-primary px-6 py-4 sm:max-w-md sm:rounded-lg">
+        {/* <div className="w-authPageWidth overflow-hidden bg-surface-primary px-6 py-4 sm:max-w-md sm:rounded-lg">
           {!hasStartupConfigError && !isFetching && header && (
             <h1
               className="mb-4 text-center text-3xl font-semibold text-text-primary"
@@ -88,7 +87,7 @@ function AuthLayout({
             (pathname.includes('login') || pathname.includes('register')) && (
               <SocialLoginRender startupConfig={startupConfig} />
             )
-          }
+          } */}
 
         <div className="flex flex-col items-center">
           <BlinkAnimation active={isFetching}>
