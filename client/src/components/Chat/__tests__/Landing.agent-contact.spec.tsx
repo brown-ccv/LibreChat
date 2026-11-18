@@ -37,6 +37,7 @@ jest.mock('~/Providers', () => ({
 jest.mock('~/data-provider', () => ({
   useGetStartupConfig: () => ({ data: { interface: {} } }),
   useGetEndpointsQuery: () => ({ data: {} }),
+  useGetUserSpend: () => ({ data: undefined }),
 }));
 
 jest.mock('~/hooks', () => ({
