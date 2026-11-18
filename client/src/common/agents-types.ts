@@ -70,3 +70,5 @@ export type AgentForm = {
   avatar_preview?: string | null;
   avatar_action?: 'upload' | 'reset' | null;
 } & TAgentCapabilities;
+
+export type AgentQueryResult = { found: true; agent: Agent } | { found: false };

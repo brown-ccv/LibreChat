@@ -122,6 +122,7 @@
   "com_ui_proposed_arguments": "Proposed arguments",
   "com_ui_no_arguments": "No arguments provided",
   "com_ui_preview_truncated": "Preview truncated. Use the timeline tool card to inspect the full proposal.",
+  "com_ui_previous_sibling": "Previous sibling message",
   "com_ui_approval_unavailable": "This action cannot be reviewed because its approval policy is incomplete.",
   "com_ui_decisions_selected": "{{0}} of {{1}} decisions selected",
   "chat_direction_left_to_right": "Left to Right",

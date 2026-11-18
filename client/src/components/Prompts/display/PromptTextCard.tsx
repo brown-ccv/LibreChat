@@ -1,10 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import { Copy, Check } from 'lucide';
 import rehypeKatex from 'rehype-katex';
 import supersub from 'remark-supersub';
 import ReactMarkdown from 'react-markdown';
-import { Copy, Check } from 'lucide-react';
 import rehypeHighlight from 'rehype-highlight';
 import { Button, MorphIcon, TooltipAnchor, useToastContext } from '@librechat/client';
 import { codeNoExecution } from '~/components/Chat/Messages/Content/MarkdownComponents';
