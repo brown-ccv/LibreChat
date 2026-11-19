@@ -1,10 +1,11 @@
 import { logger } from '@librechat/data-schemas';
 import type { Redis, Cluster } from 'ioredis';
-import type { IJobStore, IEventTransport } from './interfaces/IJobStore';
+import type { IJobStoreV2, IEventTransport } from './interfaces/IJobStore';
 import { InMemoryEventTransport } from './implementations/InMemoryEventTransport';
 import { RedisEventTransport } from './implementations/RedisEventTransport';
 import { InMemoryJobStore } from './implementations/InMemoryJobStore';
 import { RedisJobStore } from './implementations/RedisJobStore';
+import { createIoRedisSubscriber } from '~/cache/redisUtils';
 import { ioredisClient } from '~/cache/redisClients';
 import { cacheConfig } from '~/cache/cacheConfig';
 
@@ -42,7 +43,7 @@ export interface StreamServicesConfig {
  * Stream services result
  */
 export interface StreamServices {
-  jobStore: IJobStore;
+  jobStore: IJobStoreV2;
   eventTransport: IEventTransport;
   isRedis: boolean;
 }
@@ -82,7 +83,7 @@ export function createStreamServices(config: StreamServicesConfig = {}): StreamS
       let subscriber = redisSubscriber;
 
       if (!subscriber && 'duplicate' in redisClient) {
-        subscriber = (redisClient as Redis).duplicate();
+        subscriber = createIoRedisSubscriber(redisClient, '[StreamServices] subscriber');
         logger.info('[StreamServices] Duplicated Redis client for subscriber');
       }
 

@@ -34,10 +34,12 @@ export const useMCPToolsQuery = <TData = t.MCPServersResponse>(
     [QueryKeys.mcpTools],
     () => dataService.getMCPTools(),
     {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      refetchOnMount: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchOnMount: true,
+      staleTime: 5 * 60 * 1000,
+      refetchInterval: false,
+      refetchIntervalInBackground: false,
       ...config,
     },
   );

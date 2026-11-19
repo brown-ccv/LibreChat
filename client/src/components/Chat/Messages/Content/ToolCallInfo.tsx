@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Tools } from 'librechat-data-provider';
-import { UIResourceRenderer } from '@mcp-ui/client';
 import type { TAttachment, UIResource } from 'librechat-data-provider';
+import UIResourceRenderer, { isSupportedUIResource } from '~/components/MCPUIResource/Renderer';
 import { useOptionalMessagesOperations } from '~/Providers';
 import { useLocalize, useExpandCollapse } from '~/hooks';
 import UIResourceCarousel from './UIResourceCarousel';
@@ -126,7 +126,8 @@ export default function ToolCallInfo({
       ?.filter((attachment) => attachment.type === Tools.ui_resources)
       .flatMap((attachment) => {
         return attachment[Tools.ui_resources] as UIResource[];
-      }) ?? [];
+      })
+      .filter(isSupportedUIResource) ?? [];
 
   return (
     <div className="w-full px-3 py-3.5">

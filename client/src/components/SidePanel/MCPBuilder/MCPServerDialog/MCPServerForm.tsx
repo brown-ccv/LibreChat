@@ -37,9 +37,11 @@ export default function MCPServerForm({ formHook }: MCPServerFormProps) {
     <FormProvider {...methods}>
       <div className="space-y-4 px-1 py-1">
         <BasicInfoSection />
+        {/* `display: contents` would drop the margin `space-y-4` puts on this fieldset,
+            collapsing the gap above the first section to zero */}
         <fieldset
           disabled={isOboLockedReadOnly}
-          className="contents space-y-4"
+          className="space-y-4"
           aria-disabled={isOboLockedReadOnly}
         >
           <ConnectionSection />

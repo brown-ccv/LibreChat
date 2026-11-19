@@ -110,9 +110,7 @@ describe('About', () => {
       expect(
         screen.getByRole('button', { name: /com_nav_about_diagnostics_copy/i }),
       ).toBeInTheDocument();
-      expect(
-        screen.queryByRole('button', { name: /com_nav_about_diagnostics_copied/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /com_ui_copied/i })).not.toBeInTheDocument();
       expect(screen.getByRole('status').textContent).toBe('');
     });
 
@@ -123,9 +121,7 @@ describe('About', () => {
         render(<About />);
 
         await user.click(screen.getByRole('button', { name: /com_nav_about_diagnostics_copy/i }));
-        expect(
-          screen.getByRole('button', { name: /com_nav_about_diagnostics_copied/i }),
-        ).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /com_ui_copied/i })).toBeInTheDocument();
 
         act(() => {
           jest.advanceTimersByTime(2000);
@@ -164,7 +160,7 @@ describe('About', () => {
       expect(status.textContent).toBe('');
 
       await user.click(screen.getByRole('button', { name: /com_nav_about_diagnostics_copy/i }));
-      expect(status.textContent).toMatch(/com_nav_about_diagnostics_copied/);
+      expect(status.textContent).toMatch(/com_ui_copied/);
     });
   });
 });
