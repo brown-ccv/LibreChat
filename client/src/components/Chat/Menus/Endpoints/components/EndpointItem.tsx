@@ -153,7 +153,6 @@ function EndpointMenuContent({
 
   const shouldRenderModels = !modelSpecsPrioritize || endpointSpecs.length === 0;
 
-
   return (
     <>
       {showMarketplace && (
@@ -173,13 +172,15 @@ function EndpointMenuContent({
           setSize={listboxSetSize}
         />
       ))}
-      <EndpointModels
-        endpoint={endpoint}
-        renderedModels={renderedModels}
-        endpointIndex={endpointIndex}
-        searchValue={searchValue}
-        precedingOptionCount={precedingOptionCount}
-      />
+      {shouldRenderModels && (
+        <EndpointModels
+          endpoint={endpoint}
+          renderedModels={renderedModels}
+          endpointIndex={endpointIndex}
+          searchValue={searchValue}
+          precedingOptionCount={precedingOptionCount}
+        />
+      )}
     </>
   );
 }
