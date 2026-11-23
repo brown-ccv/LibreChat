@@ -4,22 +4,13 @@ import { HatGlasses } from 'lucide-react';
 import { easings } from '@react-spring/web';
 import { EModelEndpoint } from 'librechat-data-provider';
 import { BirthdayIcon, TooltipAnchor, SplitText } from '@librechat/client';
-
-import Description, { isHtmlDescription } from '~/components/ui/Description';
-import { useLocalize, useAuthContext, useGreeting } from '~/hooks';
-import AgentContact from '~/components/Agents/AgentContact';
-
-import {
-  getIconEndpoint,
-  getEntity,
-  getModelSpec,
-  createConfigHtmlSanitizer,
-  CONFIG_HTML_MEDIA_TAGS,
-  CONFIG_HTML_MEDIA_ATTR,
-} from '~/utils';
 import { useGetEndpointsQuery, useGetStartupConfig, useGetUserSpend } from '~/data-provider';
 import { useChatContext, useAgentsMapContext, useAssistantsMapContext } from '~/Providers';
+import { useLocalize, useAuthContext, useGreeting } from '~/hooks';
+import { getIconEndpoint, getEntity, getModelSpec } from '~/utils';
+import AgentContact from '~/components/Agents/AgentContact';
 import ConvoIcon from '~/components/Endpoints/ConvoIcon';
+import Description from '~/components/ui/Description';
 import temporaryStore from '~/store/temporary';
 
 const containerClassName =
@@ -57,7 +48,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
   const isTemporary = useRecoilValue(temporaryStore.isTemporary);
 
   const { data: spendData } = useGetUserSpend();
-
 
   const [textHasMultipleLines, setTextHasMultipleLines] = useState(false);
   const [lineCount, setLineCount] = useState(1);
@@ -108,21 +98,20 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
       ? startupConfig.interface.customWelcome
       : undefined;
 
-  const sanitizeDescription = useMemo(
-    () =>
-      createConfigHtmlSanitizer({
-        allowedTags: CONFIG_HTML_MEDIA_TAGS,
-        allowedAttr: CONFIG_HTML_MEDIA_ATTR,
-      }),
-    [],
-  );
+  // const sanitizeDescription = useMemo(
+  //   () =>
+  //     createConfigHtmlSanitizer({
+  //       allowedTags: CONFIG_HTML_MEDIA_TAGS,
+  //       allowedAttr: CONFIG_HTML_MEDIA_ATTR,
+  //     }),
+  //   [],
+  // );
   // const name = entity?.name ?? '';
   // const description = (entity?.description || conversation?.greeting) ?? '';
   // const rawDescription = (entity?.description || conversation?.greeting) ?? '';
   // const description = rawDescription.includes('{{spend}}')
   //   ? rawDescription.replace('{{spend}}', spendData?.spend?.toFixed(4) ?? '...')
   //   : rawDescription;
-
 
   const scheduledGreeting = useGreeting(user?.name);
 
@@ -260,7 +249,6 @@ export default function Landing({ centerFormOnLanding }: { centerFormOnLanding: 
               {description}
             </div>
           ))} */}
-
       </div>
     </div>
   );
