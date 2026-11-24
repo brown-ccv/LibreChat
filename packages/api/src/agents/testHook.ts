@@ -8,7 +8,16 @@ import type { Run, IState } from '@librechat/agents';
  */
 export interface TestRunHookContext {
   messages?: BaseMessage[];
+  /**
+   * Identifies the conversation this run belongs to. A resumed run rebuilds
+   * `createRun` with no messages because state is rehydrated from the
+   * checkpoint, so message history alone cannot tell a resume apart from a
+   * fresh attempt; this is the stable identity across both.
+   */
+  conversationId?: string;
   agents: ReadonlyArray<{ tools?: ReadonlyArray<{ name: string }> }>;
+  /** Opaque model-client handlers forwarded to the fake model by the e2e harness. */
+  modelCallbacks?: readonly object[];
 }
 
 export type TestRunHook = (run: Run<IState>, context: TestRunHookContext) => void;

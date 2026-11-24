@@ -64,7 +64,7 @@ function DynamicCheckbox({
             >
               {labelCode ? (localize(label as TranslationKeys) ?? label) : label || settingKey}{' '}
               {showDefault && (
-                <small className="opacity-40">
+                <small className="opacity-40 high-contrast:opacity-100">
                   ({localize('com_endpoint_default')}:{' '}
                   {defaultValue != null ? localize('com_ui_yes') : localize('com_ui_no')})
                 </small>
@@ -75,7 +75,7 @@ function DynamicCheckbox({
               disabled={readonly}
               checked={selectedValue}
               onCheckedChange={handleCheckedChange}
-              className="mt-[2px] focus:ring-opacity-20 dark:border-gray-500 dark:bg-gray-700 dark:text-gray-50 dark:focus:ring-gray-600 dark:focus:ring-opacity-50 dark:focus:ring-offset-0"
+              className="mt-[2px]"
               aria-label={localize(label as TranslationKeys)}
             />
           </div>

@@ -63,7 +63,7 @@ function ChatGroupItem({
         isStatus: true,
       });
       if (!isChatRoute && params.promptId === group._id) {
-        navigate(`${PROMPT_PATH}/new`, { replace: true });
+        navigate(PROMPT_PATH, { replace: true });
       }
     },
     onError: () => {
@@ -157,9 +157,15 @@ function ChatGroupItem({
           />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
-              <span className="truncate text-sm font-semibold text-text-primary" title={group.name}>
-                {group.name}
-              </span>
+              <TooltipAnchor
+                description={group.name}
+                side="top"
+                render={
+                  <span className="truncate text-sm font-semibold text-text-primary">
+                    {group.name}
+                  </span>
+                }
+              />
               {isSharedPrompt && (
                 <TooltipAnchor
                   description={localize('com_ui_by_author', { 0: group.authorName })}
@@ -187,7 +193,7 @@ function ChatGroupItem({
                       aria-label={localize('com_ui_sr_global_prompt')}
                       className="flex shrink-0 items-center"
                     >
-                      <EarthIcon className="size-3.5 text-green-400" aria-hidden="true" />
+                      <EarthIcon className="size-3.5 text-accent-primary" aria-hidden="true" />
                     </span>
                   }
                 />

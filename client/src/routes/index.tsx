@@ -41,6 +41,11 @@ const loadSkillsView = () =>
     Component: m.default,
   }));
 
+const loadInsightsView = () =>
+  import('~/components/Insights').then((m) => ({
+    Component: m.default,
+  }));
+
 const loadProjectsView = () =>
   import('~/components/Projects').then((m) => ({
     Component: m.ProjectsView,
@@ -136,11 +141,12 @@ export const router = createBrowserRouter(
             },
             {
               path: 'prompts',
-              element: <Navigate to="/prompts/new" replace={true} />,
+              element: <Navigate to="/c/new" replace={true} />,
             },
             {
+              /** Prompts are created from a dialog, so there is no "new" page to land on */
               path: 'prompts/new',
-              lazy: loadInlinePromptsView,
+              element: <Navigate to="/c/new" replace={true} />,
             },
             {
               path: 'prompts/:promptId',
@@ -149,6 +155,10 @@ export const router = createBrowserRouter(
             {
               path: 'skills',
               lazy: loadSkillsView,
+            },
+            {
+              path: 'insights',
+              lazy: loadInsightsView,
             },
             {
               path: 'skills/new',

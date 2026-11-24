@@ -99,11 +99,26 @@ export const useGetMessagesByConvoId = <TData = t.TMessage[]>(
   return useQuery<t.TMessage[], unknown, TData>(
     [QueryKeys.messages, id],
     async () => {
+      const queryKey = [QueryKeys.messages, id];
+      const messagesAtRequestStart = queryClient.getQueryData<t.TMessage[]>(queryKey);
+
+      if (id === Constants.NEW_CONVO) {
+        return messagesAtRequestStart ?? [];
+      }
+
       let result: t.TMessage[];
       try {
         result = await dataService.getMessagesByConvoId(id);
       } catch (error) {
-        const currentMessages = queryClient.getQueryData<t.TMessage[]>([QueryKeys.messages, id]);
+        const currentMessages = queryClient.getQueryData<t.TMessage[]>(queryKey);
+        if (
+          messagesAtRequestStart != null &&
+          currentMessages != null &&
+          currentMessages !== messagesAtRequestStart
+        ) {
+          return currentMessages;
+        }
+
         const hasLiveStream = isStreamingRef.current || hasActiveJob(queryClient, id);
         if (
           currentMessages &&
@@ -125,7 +140,15 @@ export const useGetMessagesByConvoId = <TData = t.TMessage[]>(
         throw error;
       }
 
-      const currentMessages = queryClient.getQueryData<t.TMessage[]>([QueryKeys.messages, id]);
+      const currentMessages = queryClient.getQueryData<t.TMessage[]>(queryKey);
+      if (
+        messagesAtRequestStart != null &&
+        currentMessages != null &&
+        currentMessages !== messagesAtRequestStart
+      ) {
+        return currentMessages;
+      }
+
       const stableMessages = getStableMessages({
         pathname: location.pathname,
         result,

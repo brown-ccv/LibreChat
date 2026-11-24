@@ -172,7 +172,10 @@ describe('MCP OAuth audience parameter', () => {
             client_id: 'test-client',
             client_secret: 'test-secret',
             redirect_uris: ['http://localhost/callback'],
+            token_endpoint_auth_method: 'client_secret_post',
           },
+          storedTokenEndpoint: `${recorder.url}token`,
+          storedAuthMethods: ['client_secret_post'],
         },
         {},
         {
@@ -200,7 +203,10 @@ describe('MCP OAuth audience parameter', () => {
             client_id: 'test-client',
             client_secret: 'test-secret',
             redirect_uris: ['http://localhost/callback'],
+            token_endpoint_auth_method: 'client_secret_post',
           },
+          storedTokenEndpoint: `${recorder.url}token`,
+          storedAuthMethods: ['client_secret_post'],
         },
         {},
         {
@@ -229,7 +235,10 @@ describe('MCP OAuth audience parameter', () => {
             client_id: 'test-client',
             client_secret: 'test-secret',
             redirect_uris: ['http://localhost/callback'],
+            token_endpoint_auth_method: 'client_secret_post',
           },
+          storedTokenEndpoint: `${recorder.url}token`,
+          storedAuthMethods: ['client_secret_post'],
         },
         {},
         {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, CopyCheck } from 'lucide-react';
+import { Copy, CopyCheck } from 'lucide';
 import {
   SystemRoles,
   Permissions,
@@ -12,6 +12,7 @@ import {
   Input,
   Button,
   Spinner,
+  MorphIcon,
   TrashIcon,
   useToastContext,
   OGDialog,
@@ -164,14 +165,14 @@ export default function MCPServerDialog({
                   variant="outline"
                   onClick={() => {
                     if (isCopying) return;
+                    if (!copyLink(setIsCopying)) return;
                     showToast({ message: localize('com_ui_copied_to_clipboard') });
-                    copyLink(setIsCopying);
                   }}
-                  disabled={isCopying}
+                  disabled={isCopying || !redirectUri}
                   className="p-0"
                   aria-label={localize('com_ui_copy_link')}
                 >
-                  {isCopying ? <CopyCheck className="size-4" /> : <Copy className="size-4" />}
+                  <MorphIcon icon={isCopying ? CopyCheck : Copy} className="size-4" />
                 </Button>
               </div>
             </div>

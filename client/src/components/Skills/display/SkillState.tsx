@@ -25,8 +25,8 @@ const styles: Record<SkillStateVariant, { icon: string; wrap: string }> = {
     wrap: 'bg-surface-tertiary',
   },
   error: {
-    icon: 'text-amber-500',
-    wrap: 'bg-amber-500/10',
+    icon: 'text-status-warning',
+    wrap: 'bg-status-warning-subtle',
   },
 };
 

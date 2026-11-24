@@ -50,7 +50,6 @@ const MarketplaceAdminSettings = ({ compact = false }: { compact?: boolean }) =>
       menuId="marketplace-role-dropdown"
       mutation={mutation}
       trigger={trigger}
-      dialogContentClassName="w-11/12 max-w-md border-border-light bg-surface-primary text-text-primary"
       showAdminWarning={false}
     />
   );

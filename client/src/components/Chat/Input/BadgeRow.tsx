@@ -21,6 +21,7 @@ import FileSearch from './FileSearch';
 import Artifacts from './Artifacts';
 import MCPSelect from './MCPSelect';
 import WebSearch from './WebSearch';
+import Memory from './Memory';
 import Skills from './Skills';
 import store from '~/store';
 
@@ -327,6 +328,7 @@ function BadgeRow({
       conversationId={conversationId}
       specName={specName}
       isSubmitting={isSubmitting}
+      observeToolAuthorization={showEphemeralBadges === true}
     >
       <div ref={containerRef} className="relative flex flex-wrap items-center gap-2">
         {showEphemeralBadges === true && <ToolsDropdown />}
@@ -375,6 +377,7 @@ function BadgeRow({
             <CodeInterpreter />
             <FileSearch />
             <Skills />
+            <Memory />
             <Artifacts />
             <MCPSelect />
           </>

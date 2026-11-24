@@ -1,27 +1,15 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import { render, screen } from '@testing-library/react';
-import {
-  useMessageContext,
-  useOptionalMessagesConversation,
-  useOptionalMessagesOperations,
-} from '~/Providers';
+import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
 import { UI_RESOURCE_MARKER } from '~/components/MCPUIResource/plugin';
-import { useGetMessagesByConvoId } from '~/data-provider';
 import MarkdownLite from '../MarkdownLite';
-import { useLocalize } from '~/hooks';
 import Markdown from '../Markdown';
 
-// Mocks for hooks used by MCPUIResource when rendered inside Markdown.
-// Keep Provider components intact while mocking only the hooks we use.
-jest.mock('~/Providers', () => ({
-  ...jest.requireActual('~/Providers'),
-  useMessageContext: jest.fn(),
-  useOptionalMessagesConversation: jest.fn(),
-  useOptionalMessagesOperations: jest.fn(),
+// Mock specific leaf hook rather than barrel exports to avoid circular module evaluation in Jest
+jest.mock('~/hooks/Messages/useConversationUIResources', () => ({
+  useConversationUIResources: jest.fn(),
 }));
-jest.mock('~/data-provider');
-jest.mock('~/hooks');
 
 // Mock @mcp-ui/client to render identifiable elements for assertions
 jest.mock('@mcp-ui/client', () => ({
@@ -30,40 +18,16 @@ jest.mock('@mcp-ui/client', () => ({
   ),
 }));
 
-const mockUseMessageContext = useMessageContext as jest.MockedFunction<typeof useMessageContext>;
-const mockUseMessagesConversation = useOptionalMessagesConversation as jest.MockedFunction<
-  typeof useOptionalMessagesConversation
+const mockUseConversationUIResources = useConversationUIResources as jest.MockedFunction<
+  typeof useConversationUIResources
 >;
-const mockUseMessagesOperations = useOptionalMessagesOperations as jest.MockedFunction<
-  typeof useOptionalMessagesOperations
->;
-const mockUseGetMessagesByConvoId = useGetMessagesByConvoId as jest.MockedFunction<
-  typeof useGetMessagesByConvoId
->;
-const mockUseLocalize = useLocalize as jest.MockedFunction<typeof useLocalize>;
 
 describe('Markdown with MCP UI markers (resource IDs)', () => {
-  let currentTestMessages: any[] = [];
-
   beforeEach(() => {
     jest.clearAllMocks();
-    currentTestMessages = [];
-
-    mockUseMessageContext.mockReturnValue({ messageId: 'msg-weather' } as any);
-    mockUseMessagesConversation.mockReturnValue({
-      conversation: { conversationId: 'conv1' },
-      conversationId: 'conv1',
-    } as any);
-    mockUseMessagesOperations.mockReturnValue({
-      ask: jest.fn(),
-      getMessages: () => currentTestMessages,
-    } as any);
-    mockUseLocalize.mockReturnValue(((key: string) => key) as any);
   });
 
-  // TODO: No idea why this test is failing. It works fine in the app, but fails in the test harness. The error is swallowed by MarkdownErrorBoundary, which falls back to unprocessed markers. Need to investigate further.
-  // fix Markdown pipeline harness (MarkdownErrorBoundary swallows an error, falling back to unprocessed markers)
-  it.skip('renders two UIResourceRenderer components for markers with resource IDs across separate attachments', () => {
+  it('renders two UIResourceRenderer components for markers with resource IDs across separate attachments', () => {
     // Two tool responses, each produced one ui_resources attachment
     const paris = {
       resourceId: 'abc123',
@@ -78,17 +42,11 @@ describe('Markdown with MCP UI markers (resource IDs)', () => {
       text: '<div>NYC Weather</div>',
     };
 
-    currentTestMessages = [
-      {
-        messageId: 'msg-weather',
-        attachments: [
-          { type: 'ui_resources', ui_resources: [paris] },
-          { type: 'ui_resources', ui_resources: [nyc] },
-        ],
-      },
-    ];
-
-    mockUseGetMessagesByConvoId.mockReturnValue({ data: currentTestMessages } as any);
+    const resourceMap = new Map<string, any>([
+      ['abc123', paris],
+      ['def456', nyc],
+    ]);
+    mockUseConversationUIResources.mockReturnValue(resourceMap as any);
 
     const content = [
       'Here are the current weather conditions for both Paris and New York:',

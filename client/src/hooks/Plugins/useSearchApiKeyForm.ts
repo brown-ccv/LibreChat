@@ -15,15 +15,18 @@ export default function useSearchApiKeyForm({
   const badgeTriggerRef = useRef<HTMLInputElement>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { installTool, removeTool } = useAuthSearchTool({ isEntityTool: true });
-  const { reset } = methods;
+  const {
+    reset,
+    formState: { dirtyFields },
+  } = methods;
 
   const onSubmitHandler = useCallback(
     (data: SearchApiKeyFormData) => {
-      installTool(data);
+      installTool(data, dirtyFields);
       setIsDialogOpen(false);
       onSubmit?.();
     },
-    [onSubmit, installTool],
+    [dirtyFields, onSubmit, installTool],
   );
 
   const handleRevokeApiKey = useCallback(() => {
